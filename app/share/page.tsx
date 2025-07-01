@@ -138,7 +138,7 @@ export default function ShareStoryPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-800 text-slate-100">
       {/* Header */}
-      <header className="py-3 md:py-4 px-4">
+      <header className="py-3 md:py-4">
         <nav className="container mx-auto flex justify-between items-center">
           <Link
             href="/"
@@ -146,14 +146,14 @@ export default function ShareStoryPage() {
           >
             The Last Story
           </Link>
-          <div className="flex gap-2 md:gap-4 lg:gap-8">
+          <div className="flex gap-4 md:gap-4 lg:gap-8">
             <Link
               href="/"
               className="text-slate-300 hover:text-white transition-colors duration-300 relative group flex items-center gap-1 md:gap-2"
             >
               <span className="hidden md:inline">Home</span>
               <svg
-                className="w-4 h-4 md:w-5 md:h-5"
+                className="w-4 h-4 md:w-5 md:h-5 md:hidden inline"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -170,7 +170,7 @@ export default function ShareStoryPage() {
             <span className="text-slate-500 flex items-center gap-1 md:gap-2">
               <span className="hidden md:inline">Write Your Story</span>
               <svg
-                className="w-4 h-4 md:w-5 md:h-5"
+                className="w-4 h-4 md:w-5 md:h-5 md:hidden inline"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
