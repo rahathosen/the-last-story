@@ -12,8 +12,9 @@ datasource db {
 
 model Story {
   id          String   @id @default(cuid())
+  slug        String   @unique
   name        String?
-  socialMedia Json?    // Will store { platform: string, url: string }
+  socialMedia Json? // Will store { platform: string, url: string }
   title       String?
   content     String
   isApproved  Boolean  @default(false)

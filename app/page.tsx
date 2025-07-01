@@ -1,58 +1,60 @@
-"use client"
+"use client";
 
-import type React from "react"
-import { useState, useRef, useEffect } from "react"
-import { Card, CardContent } from "@/components/ui/card"
-import Link from "next/link"
+import type React from "react";
+import { useState, useRef, useEffect } from "react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
 
 interface Story {
-  id: string
-  title?: string
-  name?: string
+  id: string;
+  slug: string;
+  title?: string;
+  name?: string;
   socialMedia?: {
-    platform: string
-    url: string
-  }
-  content: string
-  createdAt: string
+    platform: string;
+    url: string;
+  };
+  content: string;
+  createdAt: string;
 }
 
 export default function TheLastStory() {
-  const [stories, setStories] = useState<Story[]>([])
-  const [loading, setLoading] = useState(true)
-  const [zenModeStoryId, setZenModeStoryId] = useState<string | null>(null)
+  const [stories, setStories] = useState<Story[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [zenModeStoryId, setZenModeStoryId] = useState<string | null>(null);
 
-  const homeRef = useRef<HTMLElement>(null)
+  const homeRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
-    fetchStories()
-  }, [])
+    fetchStories();
+  }, []);
 
   const fetchStories = async () => {
     try {
-      const response = await fetch("/api/stories")
+      const response = await fetch("/api/stories");
       if (response.ok) {
-        const data = await response.json()
-        setStories(data)
+        const data = await response.json();
+        setStories(data);
       }
     } catch (error) {
-      console.error("Error fetching stories:", error)
+      console.error("Error fetching stories:", error);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const scrollToSection = (ref: React.RefObject<HTMLElement>) => {
-    ref.current?.scrollIntoView({ behavior: "smooth" })
-  }
+    ref.current?.scrollIntoView({ behavior: "smooth" });
+  };
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("en-US", {
       year: "numeric",
       month: "long",
       day: "numeric",
-    })
-  }
+    });
+  };
 
   const getSocialIcon = (platform: string) => {
     const icons: Record<string, string> = {
@@ -64,9 +66,33 @@ export default function TheLastStory() {
         "M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z",
       instagram:
         "M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z",
+    };
+    return icons[platform] || "";
+  };
+
+  const handleShare = async (story: Story) => {
+    const url = `${window.location.origin}/story/${story.slug}`;
+    const title = story.title || "A Story from The Last Story";
+    const text = `${title} - ${story.content.substring(0, 100)}...`;
+
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title,
+          text,
+          url,
+        });
+      } catch (error) {
+        // Fallback to clipboard
+        navigator.clipboard.writeText(url);
+        alert("Link copied to clipboard!");
+      }
+    } else {
+      // Fallback to clipboard
+      navigator.clipboard.writeText(url);
+      alert("Link copied to clipboard!");
     }
-    return icons[platform] || ""
-  }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-800 text-slate-100">
@@ -80,7 +106,12 @@ export default function TheLastStory() {
               className="text-slate-300 hover:text-white transition-colors duration-300 relative group flex items-center gap-2"
             >
               <span className="hidden md:inline">Home</span>
-              <svg className="w-5 h-5 md:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg
+                className="w-5 h-5 md:hidden"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
@@ -95,7 +126,12 @@ export default function TheLastStory() {
               className="text-slate-300 hover:text-white transition-colors duration-300 relative group flex items-center gap-2"
             >
               <span className="hidden md:inline">Write Your Story</span>
-              <svg className="w-5 h-5 md:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg
+                className="w-5 h-5 md:hidden"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
@@ -111,11 +147,15 @@ export default function TheLastStory() {
 
       {/* Hero Section */}
       <section
-        className={`pt-8 pb-16 px-4 transition-opacity duration-1000 ${zenModeStoryId ? "opacity-10" : "opacity-100"}`}
+        className={`pt-8 pb-16 px-4 transition-opacity duration-1000 ${
+          zenModeStoryId ? "opacity-10" : "opacity-100"
+        }`}
       >
         <div className="container mx-auto text-center max-w-4xl">
           <div className="mb-8">
-            <h2 className="text-4xl md:text-6xl font-serif text-slate-200 mb-6 leading-tight">The Last Story</h2>
+            <h2 className="text-4xl md:text-6xl font-serif text-slate-200 mb-6 leading-tight">
+              The Last Story
+            </h2>
             <div className="text-center mb-4">
               <p className="text-xl md:text-2xl text-slate-300 font-light italic leading-relaxed mb-2">
                 "Every soul will taste death"
@@ -145,8 +185,13 @@ export default function TheLastStory() {
             </div>
           ) : stories.length === 0 ? (
             <div className="text-center py-12">
-              <p className="text-slate-400 text-lg mb-4">No stories have been shared yet.</p>
-              <Link href="/share" className="text-slate-300 hover:text-white underline transition-colors">
+              <p className="text-slate-400 text-lg mb-4">
+                No stories have been shared yet.
+              </p>
+              <Link
+                href="/share"
+                className="text-slate-300 hover:text-white underline transition-colors"
+              >
                 Be the first to share your story
               </Link>
             </div>
@@ -159,55 +204,87 @@ export default function TheLastStory() {
                     zenModeStoryId && zenModeStoryId !== story.id
                       ? "opacity-10 scale-95 pointer-events-none"
                       : zenModeStoryId === story.id
-                        ? "opacity-100 scale-105 bg-slate-800/80 border-slate-600/70 shadow-2xl"
-                        : "opacity-100 scale-100"
+                      ? "opacity-100 scale-105 bg-slate-800/80 border-slate-600/70 shadow-2xl"
+                      : "opacity-100 scale-100"
                   }`}
                 >
                   <CardContent className="p-8 relative">
-                    {/* Zen Mode Button */}
-                    <button
-                      onClick={() => setZenModeStoryId(zenModeStoryId === story.id ? null : story.id)}
-                      className={`absolute top-4 right-4 p-2 rounded-full transition-all duration-300 ${
-                        zenModeStoryId === story.id
-                          ? "bg-slate-600 text-slate-200 hover:bg-slate-500"
-                          : "bg-slate-700/50 text-slate-400 hover:bg-slate-600/50 hover:text-slate-300"
-                      }`}
-                      title={zenModeStoryId === story.id ? "Exit Zen Mode" : "Enter Zen Mode"}
-                    >
-                      <svg
-                        width="16"
-                        height="16"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
+                    {/* Action Buttons */}
+                    <div className="absolute top-4 right-4 flex gap-2">
+                      <button
+                        onClick={() => handleShare(story)}
+                        className="p-2 rounded-full bg-slate-700/50 text-slate-400 hover:bg-slate-600/50 hover:text-slate-300 transition-all duration-300"
+                        title="Share this story"
                       >
-                        {zenModeStoryId === story.id ? (
-                          // Exit icon (X)
-                          <>
-                            <line x1="18" y1="6" x2="6" y2="18"></line>
-                            <line x1="6" y1="6" x2="18" y2="18"></line>
-                          </>
-                        ) : (
-                          // Zen/Focus icon (circle with dot)
-                          <>
-                            <circle cx="12" cy="12" r="10"></circle>
-                            <circle cx="12" cy="12" r="3"></circle>
-                          </>
-                        )}
-                      </svg>
-                    </button>
+                        <svg
+                          width="16"
+                          height="16"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth="2"
+                            d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z"
+                          />
+                        </svg>
+                      </button>
+                      <button
+                        onClick={() =>
+                          setZenModeStoryId(
+                            zenModeStoryId === story.id ? null : story.id
+                          )
+                        }
+                        className={`p-2 rounded-full transition-all duration-300 ${
+                          zenModeStoryId === story.id
+                            ? "bg-slate-600 text-slate-200 hover:bg-slate-500"
+                            : "bg-slate-700/50 text-slate-400 hover:bg-slate-600/50 hover:text-slate-300"
+                        }`}
+                        title={
+                          zenModeStoryId === story.id
+                            ? "Exit Zen Mode"
+                            : "Enter Zen Mode"
+                        }
+                      >
+                        <svg
+                          width="16"
+                          height="16"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        >
+                          {zenModeStoryId === story.id ? (
+                            // Exit icon (X)
+                            <>
+                              <line x1="18" y1="6" x2="6" y2="18"></line>
+                              <line x1="6" y1="6" x2="18" y2="18"></line>
+                            </>
+                          ) : (
+                            // Zen/Focus icon (circle with dot)
+                            <>
+                              <circle cx="12" cy="12" r="10"></circle>
+                              <circle cx="12" cy="12" r="3"></circle>
+                            </>
+                          )}
+                        </svg>
+                      </button>
+                    </div>
 
                     {story.title && (
-                      <h4
-                        className={`text-xl font-serif text-slate-200 mb-3 transition-all duration-500 ${
-                          zenModeStoryId === story.id ? "text-2xl" : ""
-                        }`}
-                      >
-                        {story.title}
-                      </h4>
+                      <Link href={`/story/${story.slug}`}>
+                        <h4
+                          className={`text-xl font-serif text-slate-200 mb-3 hover:text-white transition-all duration-500 cursor-pointer ${
+                            zenModeStoryId === story.id ? "text-2xl" : ""
+                          }`}
+                        >
+                          {story.title}
+                        </h4>
+                      </Link>
                     )}
                     <div className="flex items-center gap-4 mb-4 text-sm text-slate-400">
                       <span>By {story.name || "Anonymous"}</span>
@@ -220,8 +297,14 @@ export default function TheLastStory() {
                             rel="noopener noreferrer"
                             className="flex items-center gap-1 hover:text-slate-300 transition-colors"
                           >
-                            <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
-                              <path d={getSocialIcon(story.socialMedia.platform)} />
+                            <svg
+                              className="w-3 h-3"
+                              fill="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                d={getSocialIcon(story.socialMedia.platform)}
+                              />
                             </svg>
                             {story.socialMedia.platform}
                           </a>
@@ -230,14 +313,33 @@ export default function TheLastStory() {
                       <span>•</span>
                       <span>{formatDate(story.createdAt)}</span>
                     </div>
-                    <p
-                      className={`text-slate-300 leading-relaxed transition-all duration-500 ${
-                        zenModeStoryId === story.id ? "text-xl leading-loose" : "text-lg"
-                      }`}
-                      style={{ fontFamily: "SolaimanLipi, Kalpurush, Arial, sans-serif" }}
-                    >
-                      {story.content}
-                    </p>
+                    <Link href={`/story/${story.slug}`}>
+                      <p
+                        className={`text-slate-300 leading-relaxed transition-all duration-500 cursor-pointer hover:text-slate-200 ${
+                          zenModeStoryId === story.id
+                            ? "text-xl leading-loose"
+                            : "text-lg"
+                        }`}
+                        style={{
+                          fontFamily:
+                            "SolaimanLipi, Kalpurush, Arial, sans-serif",
+                        }}
+                      >
+                        {story.content.length > 300
+                          ? `${story.content.substring(0, 300)}...`
+                          : story.content}
+                      </p>
+                    </Link>
+                    {story.content.length > 300 && (
+                      <Link href={`/story/${story.slug}`}>
+                        <Button
+                          variant="link"
+                          className="p-0 h-auto text-slate-400 hover:text-slate-300 mt-2"
+                        >
+                          Read full story →
+                        </Button>
+                      </Link>
+                    )}
                   </CardContent>
                 </Card>
               ))}
@@ -254,7 +356,8 @@ export default function TheLastStory() {
       >
         <div className="container mx-auto max-w-4xl text-center">
           <p className="text-slate-300 text-lg italic mb-6 font-light">
-            "Sometimes the most powerful stories are the ones we only tell once."
+            "Sometimes the most powerful stories are the ones we only tell
+            once."
           </p>
           <div className="flex justify-center gap-8 text-sm text-slate-400">
             <a href="#" className="hover:text-slate-300 transition-colors">
@@ -270,5 +373,5 @@ export default function TheLastStory() {
         </div>
       </footer>
     </div>
-  )
+  );
 }

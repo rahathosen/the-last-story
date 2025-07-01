@@ -1,37 +1,49 @@
-import { type NextRequest, NextResponse } from "next/server"
-import { prisma } from "@/lib/db"
+import { type NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/db";
+import { generateSlug } from "@/lib/utils";
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json()
-    const { name, socialMedia, title, content } = body
+    const body = await request.json();
+    const { name, socialMedia, title, content } = body;
 
     // Validate required fields
     if (!content || content.trim().length === 0) {
-      return NextResponse.json({ error: "Story content is required" }, { status: 400 })
+      return NextResponse.json(
+        { error: "Story content is required" },
+        { status: 400 }
+      );
     }
+
+    // Generate unique slug
+    const slug = generateSlug(title, content);
 
     // Create the story
     const story = await prisma.story.create({
       data: {
+        slug,
         name: name?.trim() || null,
         socialMedia: socialMedia || null,
         title: title?.trim() || null,
         content: content.trim(),
         isApproved: false, // Stories need approval before showing
       },
-    })
+    });
 
     return NextResponse.json(
       {
         message: "Story submitted successfully",
         id: story.id,
+        slug: story.slug,
       },
-      { status: 201 },
-    )
+      { status: 201 }
+    );
   } catch (error) {
-    console.error("Error creating story:", error)
-    return NextResponse.json({ error: "Failed to submit story" }, { status: 500 })
+    console.error("Error creating story:", error);
+    return NextResponse.json(
+      { error: "Failed to submit story" },
+      { status: 500 }
+    );
   }
 }
 
@@ -46,17 +58,21 @@ export async function GET() {
       },
       select: {
         id: true,
+        slug: true,
         name: true,
         socialMedia: true,
         title: true,
         content: true,
         createdAt: true,
       },
-    })
+    });
 
-    return NextResponse.json(stories)
+    return NextResponse.json(stories);
   } catch (error) {
-    console.error("Error fetching stories:", error)
-    return NextResponse.json({ error: "Failed to fetch stories" }, { status: 500 })
+    console.error("Error fetching stories:", error);
+    return NextResponse.json(
+      { error: "Failed to fetch stories" },
+      { status: 500 }
+    );
   }
 }
