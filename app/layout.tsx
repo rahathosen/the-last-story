@@ -12,6 +12,11 @@ const playfair = Playfair_Display({
 export const metadata: Metadata = {
   title: "The Last Story",
   description: "Every soul will taste death",
+  icons: {
+    icon: "/favicon.ico",
+    apple: "/apple-icon.png",
+    shortcut: "/icon.png",
+  },
 };
 
 export default function RootLayout({
