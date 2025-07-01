@@ -4,7 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { UserAvatar } from "@/components/user-avatar";
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import Head from "next/head";
 
 interface Story {
@@ -20,16 +20,33 @@ interface Story {
   createdAt: string;
 }
 
+interface AdjacentStory {
+  slug: string;
+  title?: string;
+  name?: string;
+}
+
+interface AdjacentStories {
+  previous: AdjacentStory | null;
+  next: AdjacentStory | null;
+}
+
 export default function StoryPage() {
   const params = useParams();
+  const router = useRouter();
   const slug = params.slug as string;
   const [story, setStory] = useState<Story | null>(null);
+  const [adjacentStories, setAdjacentStories] = useState<AdjacentStories>({
+    previous: null,
+    next: null,
+  });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
   useEffect(() => {
     if (slug) {
       fetchStory();
+      fetchAdjacentStories();
     }
   }, [slug]);
 
@@ -90,6 +107,18 @@ export default function StoryPage() {
     }
   };
 
+  const fetchAdjacentStories = async () => {
+    try {
+      const response = await fetch(`/api/stories/${slug}/adjacent`);
+      if (response.ok) {
+        const data = await response.json();
+        setAdjacentStories(data);
+      }
+    } catch (error) {
+      console.error("Error fetching adjacent stories:", error);
+    }
+  };
+
   const updateMetaTag = (property: string, content: string) => {
     const metaTag =
       document.querySelector(`meta[property="${property}"]`) ||
@@ -106,6 +135,16 @@ export default function StoryPage() {
       }
       meta.content = content;
       document.head.appendChild(meta);
+    }
+  };
+
+  const handleBack = () => {
+    // Check if there's a previous page in history
+    if (typeof window !== "undefined" && window.history.length > 1) {
+      router.back();
+    } else {
+      // Fallback to home page
+      router.push("/");
     }
   };
 
@@ -158,7 +197,7 @@ export default function StoryPage() {
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-800 text-slate-100 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-slate-300"></div>
+        <div className="animate-spin rounded-full h-8 w-8 md:h-12 md:w-12 border-b-2 border-slate-300"></div>
       </div>
     );
   }
@@ -167,19 +206,20 @@ export default function StoryPage() {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-800 text-slate-100 flex items-center justify-center p-4">
         <Card className="bg-slate-800/50 border-slate-700/50 backdrop-blur-sm max-w-md w-full">
-          <CardContent className="p-8 text-center">
-            <h1 className="text-2xl font-serif text-slate-200 mb-4">
+          <CardContent className="p-6 md:p-8 text-center">
+            <h1 className="text-xl md:text-2xl font-serif text-slate-200 mb-4">
               Story Not Found
             </h1>
-            <p className="text-slate-400 mb-6">
+            <p className="text-slate-400 mb-6 text-sm md:text-base">
               {error ||
                 "The story you're looking for doesn't exist or hasn't been approved yet."}
             </p>
-            <Link href="/">
-              <Button className="bg-slate-700 hover:bg-slate-600 text-slate-200">
-                Return Home
-              </Button>
-            </Link>
+            <Button
+              onClick={handleBack}
+              className="bg-slate-700 hover:bg-slate-600 text-slate-200"
+            >
+              Go Back
+            </Button>
           </CardContent>
         </Card>
       </div>
@@ -222,22 +262,42 @@ export default function StoryPage() {
 
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-800 text-slate-100">
         {/* Header */}
-        <header className="py-4 px-4">
+        <header className="py-3 md:py-4 px-4">
           <nav className="container mx-auto flex justify-between items-center">
             <Link
               href="/"
-              className="text-xl font-serif text-slate-200 hover:text-white transition-colors"
+              className="text-lg md:text-xl font-serif text-slate-200 hover:text-white transition-colors"
             >
               The Last Story
             </Link>
-            <div className="flex gap-4">
+            <div className="flex gap-2 md:gap-4">
+              <Button
+                onClick={handleBack}
+                variant="outline"
+                className="border-slate-600 text-slate-300 hover:bg-slate-700 bg-transparent text-sm md:text-base"
+              >
+                <svg
+                  className="w-4 h-4 mr-1 md:mr-2"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M15 19l-7-7 7-7"
+                  />
+                </svg>
+                <span className="hidden sm:inline">Back</span>
+              </Button>
               <Button
                 onClick={handleShare}
                 variant="outline"
-                className="border-slate-600 text-slate-300 hover:bg-slate-700 bg-transparent"
+                className="border-slate-600 text-slate-300 hover:bg-slate-700 bg-transparent text-sm md:text-base"
               >
                 <svg
-                  className="w-4 h-4 mr-2"
+                  className="w-4 h-4 mr-1 md:mr-2"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -249,11 +309,12 @@ export default function StoryPage() {
                     d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z"
                   />
                 </svg>
-                Share
+                <span className="hidden sm:inline">Share</span>
               </Button>
               <Link href="/share">
-                <Button className="bg-slate-700 hover:bg-slate-600 text-slate-200">
-                  Share Your Story
+                <Button className="bg-slate-700 hover:bg-slate-600 text-slate-200 text-sm md:text-base">
+                  <span className="hidden sm:inline">Share Your Story</span>
+                  <span className="sm:hidden">Write</span>
                 </Button>
               </Link>
             </div>
@@ -261,17 +322,17 @@ export default function StoryPage() {
         </header>
 
         {/* Story Content */}
-        <main className="container mx-auto px-4 py-8 max-w-4xl">
+        <main className="container mx-auto px-4 py-6 md:py-8 max-w-4xl">
           <Card className="bg-slate-800/50 border-slate-700/50 backdrop-blur-sm">
-            <CardContent className="p-6 md:p-12">
+            <CardContent className="p-4 md:p-8 lg:p-12">
               {story.title && (
-                <h1 className="text-2xl md:text-4xl font-serif text-slate-200 mb-6 leading-tight">
+                <h1 className="text-xl md:text-3xl lg:text-4xl font-serif text-slate-200 mb-4 md:mb-6 leading-tight">
                   {story.title}
                 </h1>
               )}
 
-              <div className="flex items-center gap-4 mb-8 text-slate-400">
-                <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3 md:gap-4 mb-6 md:mb-8 text-slate-400 flex-wrap">
+                <div className="flex items-center gap-2 md:gap-3">
                   <UserAvatar name={story.name} size="md" />
                   <span className="text-sm md:text-base">
                     By {story.name || "Anonymous"}
@@ -279,7 +340,7 @@ export default function StoryPage() {
                 </div>
                 {story.socialMedia && (
                   <>
-                    <span className="hidden md:inline">•</span>
+                    <span className="hidden sm:inline">•</span>
                     <a
                       href={story.socialMedia.url}
                       target="_blank"
@@ -293,13 +354,13 @@ export default function StoryPage() {
                       >
                         <path d={getSocialIcon(story.socialMedia.platform)} />
                       </svg>
-                      <span className="hidden md:inline">
+                      <span className="hidden sm:inline">
                         {story.socialMedia.platform}
                       </span>
                     </a>
                   </>
                 )}
-                <span className="hidden md:inline">•</span>
+                <span className="hidden sm:inline">•</span>
                 <span className="text-sm md:text-base">
                   {formatDate(story.createdAt)}
                 </span>
@@ -307,7 +368,7 @@ export default function StoryPage() {
 
               <div className="prose prose-lg prose-invert max-w-none">
                 <p
-                  className="text-slate-300 leading-relaxed text-base md:text-lg whitespace-pre-wrap"
+                  className="text-slate-300 leading-relaxed md:leading-loose text-sm md:text-base lg:text-lg whitespace-pre-wrap"
                   style={{
                     fontFamily: "SolaimanLipi, Kalpurush, Arial, sans-serif",
                   }}
@@ -316,7 +377,82 @@ export default function StoryPage() {
                 </p>
               </div>
 
-              <div className="mt-12 pt-8 border-t border-slate-700/50">
+              {/* Navigation between stories */}
+              {(adjacentStories.previous || adjacentStories.next) && (
+                <div className="mt-8 md:mt-12 pt-6 md:pt-8 border-t border-slate-700/50">
+                  <div className="flex flex-col sm:flex-row justify-between gap-4">
+                    {adjacentStories.previous ? (
+                      <Link
+                        href={`/story/${adjacentStories.previous.slug}`}
+                        className="flex-1 group"
+                      >
+                        <div className="p-4 rounded-lg border border-slate-700/50 hover:border-slate-600/50 hover:bg-slate-800/30 transition-all duration-300">
+                          <div className="flex items-center gap-2 text-slate-400 text-sm mb-2">
+                            <svg
+                              className="w-4 h-4"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M15 19l-7-7 7-7"
+                              />
+                            </svg>
+                            Previous Story
+                          </div>
+                          <h3 className="text-slate-200 group-hover:text-white transition-colors text-sm md:text-base font-medium">
+                            {adjacentStories.previous.title ||
+                              `Story by ${
+                                adjacentStories.previous.name || "Anonymous"
+                              }`}
+                          </h3>
+                        </div>
+                      </Link>
+                    ) : (
+                      <div className="flex-1"></div>
+                    )}
+
+                    {adjacentStories.next ? (
+                      <Link
+                        href={`/story/${adjacentStories.next.slug}`}
+                        className="flex-1 group"
+                      >
+                        <div className="p-4 rounded-lg border border-slate-700/50 hover:border-slate-600/50 hover:bg-slate-800/30 transition-all duration-300 text-right">
+                          <div className="flex items-center justify-end gap-2 text-slate-400 text-sm mb-2">
+                            Next Story
+                            <svg
+                              className="w-4 h-4"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M9 5l7 7-7 7"
+                              />
+                            </svg>
+                          </div>
+                          <h3 className="text-slate-200 group-hover:text-white transition-colors text-sm md:text-base font-medium">
+                            {adjacentStories.next.title ||
+                              `Story by ${
+                                adjacentStories.next.name || "Anonymous"
+                              }`}
+                          </h3>
+                        </div>
+                      </Link>
+                    ) : (
+                      <div className="flex-1"></div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              <div className="mt-8 md:mt-12 pt-6 md:pt-8 border-t border-slate-700/50">
                 <div className="flex flex-col sm:flex-row gap-4 justify-between items-center">
                   <p className="text-slate-400 text-sm italic text-center sm:text-left">
                     "May their memory be a blessing and bring comfort to all who
@@ -330,14 +466,13 @@ export default function StoryPage() {
                     >
                       Share This Story
                     </Button>
-                    <Link href="/">
-                      <Button
-                        variant="outline"
-                        className="border-slate-600 text-slate-300 hover:bg-slate-700 bg-transparent text-sm"
-                      >
-                        Read More Stories
-                      </Button>
-                    </Link>
+                    <Button
+                      onClick={handleBack}
+                      variant="outline"
+                      className="border-slate-600 text-slate-300 hover:bg-slate-700 bg-transparent text-sm"
+                    >
+                      Go Back
+                    </Button>
                   </div>
                 </div>
               </div>
@@ -346,13 +481,13 @@ export default function StoryPage() {
         </main>
 
         {/* Footer */}
-        <footer className="py-12 px-4 border-t border-slate-700/50">
+        <footer className="py-8 md:py-12 px-4 border-t border-slate-700/50">
           <div className="container mx-auto max-w-4xl text-center">
-            <p className="text-slate-300 text-lg italic mb-6 font-light">
+            <p className="text-slate-300 text-base md:text-lg italic mb-4 md:mb-6 font-light">
               "Sometimes the most powerful stories are the ones we only tell
               once."
             </p>
-            <div className="flex justify-center gap-8 text-sm text-slate-400">
+            <div className="flex justify-center gap-4 md:gap-8 text-xs md:text-sm text-slate-400">
               <a href="#" className="hover:text-slate-300 transition-colors">
                 Privacy
               </a>
