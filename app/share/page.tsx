@@ -204,7 +204,7 @@ export default function ShareStoryPage() {
       </section>
 
       {/* Form Section */}
-      <section className="py-12 md:py-16 px-4">
+      <section className="py-12 md:py-16">
         <div className="container mx-auto max-w-3xl">
           {showThankYou ? (
             <Card className="bg-slate-800/50 border-slate-700/50 backdrop-blur-sm">

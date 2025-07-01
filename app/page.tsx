@@ -359,19 +359,19 @@ export default function TheLastStory() {
       )}
 
       {/* Header */}
-      <header className="py-3 md:py-4 px-4">
+      <header className="py-3 md:py-4">
         <nav className="container mx-auto flex justify-between items-center">
           <h1 className="text-lg md:text-xl font-serif text-slate-200">
             The Last Story
           </h1>
-          <div className="flex gap-2 md:gap-4 lg:gap-8">
+          <div className="flex gap-4 md:gap-4 lg:gap-8">
             <button
               onClick={() => scrollToSection(homeRef)}
               className="text-slate-300 hover:text-white transition-colors duration-300 relative group flex items-center gap-1 md:gap-2"
             >
               <span className="hidden md:inline">Home</span>
               <svg
-                className="w-4 h-4 md:w-5 md:h-5"
+                className="w-4 h-4 md:hidden inline"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -391,7 +391,7 @@ export default function TheLastStory() {
             >
               <span className="hidden md:inline">Write Your Story</span>
               <svg
-                className="w-4 h-4 md:w-5 md:h-5"
+                className="w-4 h-4 md:w-5 md:h-5 md:hidden inline"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -430,7 +430,7 @@ export default function TheLastStory() {
       </section>
 
       {/* Stories Section */}
-      <section ref={homeRef} className="py-12 md:py-16 px-4">
+      <section ref={homeRef} className="py-12 md:py-16">
         <div className="container mx-auto max-w-4xl">
           <h3 className="text-2xl md:text-3xl font-serif text-slate-200 mb-8 md:mb-12 text-center">
             Stories of Love and Memory
