@@ -6,6 +6,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { UserAvatar } from "@/components/user-avatar";
 import Link from "next/link";
 
 interface Story {
@@ -27,19 +35,32 @@ export default function AdminApprovePage() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [stories, setStories] = useState<Story[]>([]);
+  const [filteredStories, setFilteredStories] = useState<Story[]>([]);
   const [loading, setLoading] = useState(false);
   const [authError, setAuthError] = useState("");
+  const [sortBy, setSortBy] = useState("createdAt");
+  const [sortOrder, setSortOrder] = useState("desc");
+  const [statusFilter, setStatusFilter] = useState("all");
 
   useEffect(() => {
     checkAuth();
   }, []);
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      fetchStories();
+    }
+  }, [isAuthenticated, sortBy, sortOrder, statusFilter]);
+
+  useEffect(() => {
+    filterAndSortStories();
+  }, [stories, statusFilter]);
 
   const checkAuth = async () => {
     try {
       const response = await fetch("/api/admin/stories");
       if (response.ok) {
         setIsAuthenticated(true);
-        fetchStories();
       }
     } catch (error) {
       console.error("Auth check failed:", error);
@@ -62,7 +83,6 @@ export default function AdminApprovePage() {
 
       if (response.ok) {
         setIsAuthenticated(true);
-        fetchStories();
       } else {
         const error = await response.json();
         setAuthError(error.error || "Login failed");
@@ -88,7 +108,13 @@ export default function AdminApprovePage() {
 
   const fetchStories = async () => {
     try {
-      const response = await fetch("/api/admin/stories");
+      const params = new URLSearchParams({
+        sortBy,
+        sortOrder,
+        ...(statusFilter !== "all" && { status: statusFilter }),
+      });
+
+      const response = await fetch(`/api/admin/stories?${params}`);
       if (response.ok) {
         const data = await response.json();
         setStories(data);
@@ -96,6 +122,18 @@ export default function AdminApprovePage() {
     } catch (error) {
       console.error("Error fetching stories:", error);
     }
+  };
+
+  const filterAndSortStories = () => {
+    let filtered = [...stories];
+
+    if (statusFilter === "approved") {
+      filtered = filtered.filter((story) => story.isApproved);
+    } else if (statusFilter === "pending") {
+      filtered = filtered.filter((story) => !story.isApproved);
+    }
+
+    setFilteredStories(filtered);
   };
 
   const handleApprove = async (id: string, isApproved: boolean) => {
@@ -265,9 +303,118 @@ export default function AdminApprovePage() {
           </Card>
         </div>
 
+        {/* Filters and Sorting */}
+        <Card className="bg-slate-800/50 border-slate-700/50 mb-6">
+          <CardContent className="p-4">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div>
+                <label className="block text-slate-300 mb-2 text-sm">
+                  Status Filter
+                </label>
+                <Select value={statusFilter} onValueChange={setStatusFilter}>
+                  <SelectTrigger className="bg-slate-800/50 border-slate-700/50 text-slate-200">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="bg-slate-800 border-slate-700">
+                    <SelectItem
+                      value="all"
+                      className="text-slate-200 focus:bg-slate-700"
+                    >
+                      All Stories
+                    </SelectItem>
+                    <SelectItem
+                      value="pending"
+                      className="text-slate-200 focus:bg-slate-700"
+                    >
+                      Pending Only
+                    </SelectItem>
+                    <SelectItem
+                      value="approved"
+                      className="text-slate-200 focus:bg-slate-700"
+                    >
+                      Approved Only
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <label className="block text-slate-300 mb-2 text-sm">
+                  Sort By
+                </label>
+                <Select value={sortBy} onValueChange={setSortBy}>
+                  <SelectTrigger className="bg-slate-800/50 border-slate-700/50 text-slate-200">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="bg-slate-800 border-slate-700">
+                    <SelectItem
+                      value="createdAt"
+                      className="text-slate-200 focus:bg-slate-700"
+                    >
+                      Date Created
+                    </SelectItem>
+                    <SelectItem
+                      value="name"
+                      className="text-slate-200 focus:bg-slate-700"
+                    >
+                      Author Name
+                    </SelectItem>
+                    <SelectItem
+                      value="title"
+                      className="text-slate-200 focus:bg-slate-700"
+                    >
+                      Story Title
+                    </SelectItem>
+                    <SelectItem
+                      value="isApproved"
+                      className="text-slate-200 focus:bg-slate-700"
+                    >
+                      Approval Status
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <label className="block text-slate-300 mb-2 text-sm">
+                  Sort Order
+                </label>
+                <Select value={sortOrder} onValueChange={setSortOrder}>
+                  <SelectTrigger className="bg-slate-800/50 border-slate-700/50 text-slate-200">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="bg-slate-800 border-slate-700">
+                    <SelectItem
+                      value="desc"
+                      className="text-slate-200 focus:bg-slate-700"
+                    >
+                      Descending
+                    </SelectItem>
+                    <SelectItem
+                      value="asc"
+                      className="text-slate-200 focus:bg-slate-700"
+                    >
+                      Ascending
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="flex items-end">
+                <Button
+                  onClick={fetchStories}
+                  className="w-full bg-slate-700 hover:bg-slate-600 text-slate-200"
+                >
+                  Apply Filters
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Stories List */}
         <div className="space-y-6">
-          {stories.map((story) => (
+          {filteredStories.map((story) => (
             <Card
               key={story.id}
               className="bg-slate-800/50 border-slate-700/50 backdrop-blur-sm"
@@ -275,7 +422,7 @@ export default function AdminApprovePage() {
               <CardContent className="p-6">
                 <div className="flex justify-between items-start mb-4">
                   <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-2">
+                    <div className="flex items-center gap-3 mb-3">
                       {story.title && (
                         <h3 className="text-xl font-serif text-slate-200">
                           {story.title}
@@ -291,7 +438,10 @@ export default function AdminApprovePage() {
                       </Badge>
                     </div>
                     <div className="flex items-center gap-4 text-sm text-slate-400 mb-3">
-                      <span>By {story.name || "Anonymous"}</span>
+                      <div className="flex items-center gap-2">
+                        <UserAvatar name={story.name} size="sm" />
+                        <span>By {story.name || "Anonymous"}</span>
+                      </div>
                       <span>•</span>
                       <span>{formatDate(story.createdAt)}</span>
                       {story.socialMedia && (
@@ -306,7 +456,7 @@ export default function AdminApprovePage() {
                     </p>
                     <div className="flex items-center gap-2 text-sm text-slate-400">
                       <span>Shareable URL:</span>
-                      <code className="bg-slate-700/50 px-2 py-1 rounded text-slate-300">
+                      <code className="bg-slate-700/50 px-2 py-1 rounded text-slate-300 text-xs">
                         {getShareableUrl(story.slug)}
                       </code>
                       <Button
@@ -325,7 +475,7 @@ export default function AdminApprovePage() {
                   </div>
                 </div>
 
-                <div className="flex gap-2">
+                <div className="flex gap-2 flex-wrap">
                   {!story.isApproved && (
                     <Button
                       onClick={() => handleApprove(story.id, true)}
@@ -343,13 +493,13 @@ export default function AdminApprovePage() {
                       Unapprove
                     </Button>
                   )}
-                  <Button
+                  {/* <Button
                     onClick={() => handleDelete(story.id)}
                     variant="outline"
                     className="border-red-600 text-red-400 hover:bg-red-600/10"
                   >
                     Delete
-                  </Button>
+                  </Button> */}
                   <Link
                     href={`/story/${story.slug}`}
                     target="_blank"
@@ -362,10 +512,12 @@ export default function AdminApprovePage() {
             </Card>
           ))}
 
-          {stories.length === 0 && (
+          {filteredStories.length === 0 && (
             <div className="text-center py-12">
               <p className="text-slate-400 text-lg">
-                No stories submitted yet.
+                {statusFilter === "all"
+                  ? "No stories submitted yet."
+                  : `No ${statusFilter} stories found.`}
               </p>
             </div>
           )}

@@ -8,15 +8,28 @@ function checkAuth() {
   return session?.value === "authenticated";
 }
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   if (!checkAuth()) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   try {
+    const { searchParams } = new URL(request.url);
+    const sortBy = searchParams.get("sortBy") || "createdAt";
+    const sortOrder = searchParams.get("sortOrder") || "desc";
+    const status = searchParams.get("status"); // 'approved', 'pending', or null for all
+
+    let whereClause = {};
+    if (status === "approved") {
+      whereClause = { isApproved: true };
+    } else if (status === "pending") {
+      whereClause = { isApproved: false };
+    }
+
     const stories = await prisma.story.findMany({
+      where: whereClause,
       orderBy: {
-        createdAt: "desc",
+        [sortBy]: sortOrder as "asc" | "desc",
       },
     });
 

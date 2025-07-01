@@ -4,6 +4,7 @@ import type React from "react";
 import { useState, useRef, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { UserAvatar } from "@/components/user-avatar";
 import Link from "next/link";
 
 interface Story {
@@ -19,23 +20,41 @@ interface Story {
   createdAt: string;
 }
 
+interface Pagination {
+  currentPage: number;
+  totalPages: number;
+  totalCount: number;
+  hasNext: boolean;
+  hasPrev: boolean;
+}
+
 export default function TheLastStory() {
   const [stories, setStories] = useState<Story[]>([]);
+  const [pagination, setPagination] = useState<Pagination>({
+    currentPage: 1,
+    totalPages: 1,
+    totalCount: 0,
+    hasNext: false,
+    hasPrev: false,
+  });
   const [loading, setLoading] = useState(true);
   const [zenModeStoryId, setZenModeStoryId] = useState<string | null>(null);
+  const [zenModeStory, setZenModeStory] = useState<Story | null>(null);
 
-  const homeRef = useRef<HTMLElement | null>(null);
+  const homeRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
-    fetchStories();
+    fetchStories(1);
   }, []);
 
-  const fetchStories = async () => {
+  const fetchStories = async (page: number) => {
+    setLoading(true);
     try {
-      const response = await fetch("/api/stories");
+      const response = await fetch(`/api/stories?page=${page}&limit=5`);
       if (response.ok) {
         const data = await response.json();
-        setStories(data);
+        setStories(data.stories);
+        setPagination(data.pagination);
       }
     } catch (error) {
       console.error("Error fetching stories:", error);
@@ -44,7 +63,12 @@ export default function TheLastStory() {
     }
   };
 
-  const scrollToSection = (ref: React.RefObject<HTMLElement>) => {
+  const handlePageChange = (page: number) => {
+    fetchStories(page);
+    scrollToSection(homeRef);
+  };
+
+  const scrollToSection = (ref: React.RefObject<HTMLElement | null>) => {
     ref.current?.scrollIntoView({ behavior: "smooth" });
   };
 
@@ -94,8 +118,202 @@ export default function TheLastStory() {
     }
   };
 
+  const handleZenMode = (story: Story) => {
+    if (zenModeStoryId === story.id) {
+      setZenModeStoryId(null);
+      setZenModeStory(null);
+    } else {
+      setZenModeStoryId(story.id);
+      setZenModeStory(story);
+    }
+  };
+
+  const renderPagination = () => {
+    const pages = [];
+    const maxVisiblePages = 5;
+    let startPage = Math.max(
+      1,
+      pagination.currentPage - Math.floor(maxVisiblePages / 2)
+    );
+    const endPage = Math.min(
+      pagination.totalPages,
+      startPage + maxVisiblePages - 1
+    );
+
+    if (endPage - startPage + 1 < maxVisiblePages) {
+      startPage = Math.max(1, endPage - maxVisiblePages + 1);
+    }
+
+    for (let i = startPage; i <= endPage; i++) {
+      pages.push(
+        <Button
+          key={i}
+          onClick={() => handlePageChange(i)}
+          variant={i === pagination.currentPage ? "default" : "outline"}
+          className={`w-10 h-10 p-0 ${
+            i === pagination.currentPage
+              ? "bg-slate-600 text-slate-200"
+              : "border-slate-600 text-slate-300 hover:bg-slate-700 bg-transparent"
+          }`}
+        >
+          {i}
+        </Button>
+      );
+    }
+
+    return (
+      <div className="flex items-center justify-center gap-2 mt-12">
+        <Button
+          onClick={() => handlePageChange(pagination.currentPage - 1)}
+          disabled={!pagination.hasPrev}
+          variant="outline"
+          className="border-slate-600 text-slate-300 hover:bg-slate-700 bg-transparent disabled:opacity-50"
+        >
+          <svg
+            className="w-4 h-4"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M15 19l-7-7 7-7"
+            />
+          </svg>
+        </Button>
+        {pages}
+        <Button
+          onClick={() => handlePageChange(pagination.currentPage + 1)}
+          disabled={!pagination.hasNext}
+          variant="outline"
+          className="border-slate-600 text-slate-300 hover:bg-slate-700 bg-transparent disabled:opacity-50"
+        >
+          <svg
+            className="w-4 h-4"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M9 5l7 7-7 7"
+            />
+          </svg>
+        </Button>
+      </div>
+    );
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-800 text-slate-100">
+      {/* Zen Mode Overlay */}
+      {zenModeStoryId && zenModeStory && (
+        <div className="fixed inset-0 bg-slate-900/95 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto">
+          <div className="w-full max-w-4xl">
+            <Card className="bg-slate-800/90 border-slate-600/70 backdrop-blur-sm">
+              <CardContent className="p-6 md:p-12 relative">
+                <button
+                  onClick={() => handleZenMode(zenModeStory)}
+                  className="absolute top-4 right-4 p-2 rounded-full bg-slate-700 text-slate-300 hover:bg-slate-600 hover:text-slate-200 transition-all duration-300"
+                  title="Exit Zen Mode"
+                >
+                  <svg
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                  >
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                  </svg>
+                </button>
+
+                {zenModeStory.title && (
+                  <h2 className="text-2xl md:text-3xl font-serif text-slate-200 mb-6 leading-tight pr-12">
+                    {zenModeStory.title}
+                  </h2>
+                )}
+
+                <div className="flex items-center gap-4 mb-8 text-slate-400">
+                  <div className="flex items-center gap-3">
+                    <UserAvatar name={zenModeStory.name} size="md" />
+                    <span className="text-sm md:text-base">
+                      By {zenModeStory.name || "Anonymous"}
+                    </span>
+                  </div>
+                  {zenModeStory.socialMedia && (
+                    <>
+                      <span className="hidden md:inline">•</span>
+                      <a
+                        href={zenModeStory.socialMedia.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-1 hover:text-slate-300 transition-colors text-sm md:text-base"
+                      >
+                        <svg
+                          className="w-4 h-4"
+                          fill="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            d={getSocialIcon(zenModeStory.socialMedia.platform)}
+                          />
+                        </svg>
+                        <span className="hidden md:inline">
+                          {zenModeStory.socialMedia.platform}
+                        </span>
+                      </a>
+                    </>
+                  )}
+                  <span className="hidden md:inline">•</span>
+                  <span className="text-sm md:text-base">
+                    {formatDate(zenModeStory.createdAt)}
+                  </span>
+                </div>
+
+                <p
+                  className="text-slate-300 leading-loose text-lg md:text-xl whitespace-pre-wrap"
+                  style={{
+                    fontFamily: "SolaimanLipi, Kalpurush, Arial, sans-serif",
+                  }}
+                >
+                  {zenModeStory.content}
+                </p>
+
+                <div className="mt-8 pt-6 border-t border-slate-700/50 flex justify-center">
+                  <Button
+                    onClick={() => handleShare(zenModeStory)}
+                    variant="outline"
+                    className="border-slate-600 text-slate-300 hover:bg-slate-700 bg-transparent"
+                  >
+                    <svg
+                      className="w-4 h-4 mr-2"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z"
+                      />
+                    </svg>
+                    Share This Story
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <header className="py-4 px-4">
         <nav className="container mx-auto flex justify-between items-center">
@@ -146,11 +364,7 @@ export default function TheLastStory() {
       </header>
 
       {/* Hero Section */}
-      <section
-        className={`pt-8 pb-16 px-4 transition-opacity duration-1000 ${
-          zenModeStoryId ? "opacity-10" : "opacity-100"
-        }`}
-      >
+      <section className="pt-8 pb-16 px-4">
         <div className="container mx-auto text-center max-w-4xl">
           <div className="mb-8">
             <h2 className="text-4xl md:text-6xl font-serif text-slate-200 mb-6 leading-tight">
@@ -170,11 +384,7 @@ export default function TheLastStory() {
       {/* Stories Section */}
       <section ref={homeRef} className="py-16 px-4">
         <div className="container mx-auto max-w-4xl">
-          <h3
-            className={`text-3xl font-serif text-slate-200 mb-12 text-center transition-opacity duration-1000 ${
-              zenModeStoryId ? "opacity-20" : "opacity-100"
-            }`}
-          >
+          <h3 className="text-3xl font-serif text-slate-200 mb-12 text-center">
             Stories of Love and Memory
           </h3>
 
@@ -196,164 +406,139 @@ export default function TheLastStory() {
               </Link>
             </div>
           ) : (
-            <div className="space-y-8">
-              {stories.map((story) => (
-                <Card
-                  key={story.id}
-                  className={`bg-slate-800/50 border-slate-700/50 backdrop-blur-sm hover:bg-slate-800/70 transition-all duration-1000 ${
-                    zenModeStoryId && zenModeStoryId !== story.id
-                      ? "opacity-10 scale-95 pointer-events-none"
-                      : zenModeStoryId === story.id
-                      ? "opacity-100 scale-105 bg-slate-800/80 border-slate-600/70 shadow-2xl"
-                      : "opacity-100 scale-100"
-                  }`}
-                >
-                  <CardContent className="p-8 relative">
-                    {/* Action Buttons */}
-                    <div className="absolute top-4 right-4 flex gap-2">
-                      <button
-                        onClick={() => handleShare(story)}
-                        className="p-2 rounded-full bg-slate-700/50 text-slate-400 hover:bg-slate-600/50 hover:text-slate-300 transition-all duration-300"
-                        title="Share this story"
-                      >
-                        <svg
-                          width="16"
-                          height="16"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
+            <>
+              <div className="space-y-6">
+                {stories.map((story) => (
+                  <Card
+                    key={story.id}
+                    className="bg-slate-800/50 border-slate-700/50 backdrop-blur-sm hover:bg-slate-800/70 transition-all duration-300"
+                  >
+                    <CardContent className="p-4 md:p-6 relative">
+                      {/* Action Buttons */}
+                      <div className="absolute top-4 right-4 flex gap-2">
+                        <button
+                          onClick={() => handleShare(story)}
+                          className="p-2 rounded-full bg-slate-700/50 text-slate-400 hover:bg-slate-600/50 hover:text-slate-300 transition-all duration-300"
+                          title="Share this story"
                         >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth="2"
-                            d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z"
-                          />
-                        </svg>
-                      </button>
-                      <button
-                        onClick={() =>
-                          setZenModeStoryId(
-                            zenModeStoryId === story.id ? null : story.id
-                          )
-                        }
-                        className={`p-2 rounded-full transition-all duration-300 ${
-                          zenModeStoryId === story.id
-                            ? "bg-slate-600 text-slate-200 hover:bg-slate-500"
-                            : "bg-slate-700/50 text-slate-400 hover:bg-slate-600/50 hover:text-slate-300"
-                        }`}
-                        title={
-                          zenModeStoryId === story.id
-                            ? "Exit Zen Mode"
-                            : "Enter Zen Mode"
-                        }
-                      >
-                        <svg
-                          width="16"
-                          height="16"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        >
-                          {zenModeStoryId === story.id ? (
-                            // Exit icon (X)
-                            <>
-                              <line x1="18" y1="6" x2="6" y2="18"></line>
-                              <line x1="6" y1="6" x2="18" y2="18"></line>
-                            </>
-                          ) : (
-                            // Zen/Focus icon (circle with dot)
-                            <>
-                              <circle cx="12" cy="12" r="10"></circle>
-                              <circle cx="12" cy="12" r="3"></circle>
-                            </>
-                          )}
-                        </svg>
-                      </button>
-                    </div>
-
-                    {story.title && (
-                      <Link href={`/story/${story.slug}`}>
-                        <h4
-                          className={`text-xl font-serif text-slate-200 mb-3 hover:text-white transition-all duration-500 cursor-pointer ${
-                            zenModeStoryId === story.id ? "text-2xl" : ""
-                          }`}
-                        >
-                          {story.title}
-                        </h4>
-                      </Link>
-                    )}
-                    <div className="flex items-center gap-4 mb-4 text-sm text-slate-400">
-                      <span>By {story.name || "Anonymous"}</span>
-                      {story.socialMedia && (
-                        <>
-                          <span>•</span>
-                          <a
-                            href={story.socialMedia.url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="flex items-center gap-1 hover:text-slate-300 transition-colors"
+                          <svg
+                            width="16"
+                            height="16"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
                           >
-                            <svg
-                              className="w-3 h-3"
-                              fill="currentColor"
-                              viewBox="0 0 24 24"
-                            >
-                              <path
-                                d={getSocialIcon(story.socialMedia.platform)}
-                              />
-                            </svg>
-                            {story.socialMedia.platform}
-                          </a>
-                        </>
-                      )}
-                      <span>•</span>
-                      <span>{formatDate(story.createdAt)}</span>
-                    </div>
-                    <Link href={`/story/${story.slug}`}>
-                      <p
-                        className={`text-slate-300 leading-relaxed transition-all duration-500 cursor-pointer hover:text-slate-200 ${
-                          zenModeStoryId === story.id
-                            ? "text-xl leading-loose"
-                            : "text-lg"
-                        }`}
-                        style={{
-                          fontFamily:
-                            "SolaimanLipi, Kalpurush, Arial, sans-serif",
-                        }}
-                      >
-                        {story.content.length > 300
-                          ? `${story.content.substring(0, 300)}...`
-                          : story.content}
-                      </p>
-                    </Link>
-                    {story.content.length > 300 && (
-                      <Link href={`/story/${story.slug}`}>
-                        <Button
-                          variant="link"
-                          className="p-0 h-auto text-slate-400 hover:text-slate-300 mt-2"
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth="2"
+                              d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z"
+                            />
+                          </svg>
+                        </button>
+                        <button
+                          onClick={() => handleZenMode(story)}
+                          className="p-2 rounded-full bg-slate-700/50 text-slate-400 hover:bg-slate-600/50 hover:text-slate-300 transition-all duration-300"
+                          title="Enter Zen Mode"
                         >
-                          Read full story →
-                        </Button>
+                          <svg
+                            width="16"
+                            height="16"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                          >
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <circle cx="12" cy="12" r="3"></circle>
+                          </svg>
+                        </button>
+                      </div>
+
+                      {story.title && (
+                        <Link href={`/story/${story.slug}`}>
+                          <h4 className="text-lg md:text-xl font-serif text-slate-200 mb-3 hover:text-white transition-colors cursor-pointer pr-20">
+                            {story.title}
+                          </h4>
+                        </Link>
+                      )}
+
+                      <div className="flex items-center gap-3 mb-4 text-sm text-slate-400 flex-wrap">
+                        <div className="flex items-center gap-2">
+                          <UserAvatar name={story.name} size="sm" />
+                          <span>By {story.name || "Anonymous"}</span>
+                        </div>
+                        {story.socialMedia && (
+                          <>
+                            <span className="hidden sm:inline">•</span>
+                            <a
+                              href={story.socialMedia.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="flex items-center gap-1 hover:text-slate-300 transition-colors"
+                            >
+                              <svg
+                                className="w-3 h-3"
+                                fill="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  d={getSocialIcon(story.socialMedia.platform)}
+                                />
+                              </svg>
+                              <span className="hidden sm:inline">
+                                {story.socialMedia.platform}
+                              </span>
+                            </a>
+                          </>
+                        )}
+                        <span className="hidden sm:inline">•</span>
+                        <span>{formatDate(story.createdAt)}</span>
+                      </div>
+
+                      <Link href={`/story/${story.slug}`}>
+                        <p
+                          className="text-slate-300 leading-relaxed text-sm md:text-base cursor-pointer hover:text-slate-200 transition-colors line-clamp-4"
+                          style={{
+                            fontFamily:
+                              "SolaimanLipi, Kalpurush, Arial, sans-serif",
+                          }}
+                        >
+                          {story.content.length > 200
+                            ? `${story.content.substring(0, 200)}...`
+                            : story.content}
+                        </p>
                       </Link>
-                    )}
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+
+                      {story.content.length > 200 && (
+                        <Link href={`/story/${story.slug}`}>
+                          <Button
+                            variant="link"
+                            className="p-0 h-auto text-slate-400 hover:text-slate-300 mt-2 text-sm"
+                          >
+                            Read full story →
+                          </Button>
+                        </Link>
+                      )}
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+
+              {/* Pagination */}
+              {pagination.totalPages > 1 && renderPagination()}
+
+              {/* Results Info */}
+              <div className="text-center mt-8 text-slate-400 text-sm">
+                Showing {stories.length} of {pagination.totalCount} stories
+              </div>
+            </>
           )}
         </div>
       </section>
 
       {/* Footer */}
-      <footer
-        className={`py-12 px-4 border-t border-slate-700/50 transition-opacity duration-1000 ${
-          zenModeStoryId ? "opacity-10" : "opacity-100"
-        }`}
-      >
+      <footer className="py-12 px-4 border-t border-slate-700/50">
         <div className="container mx-auto max-w-4xl text-center">
           <p className="text-slate-300 text-lg italic mb-6 font-light">
             "Sometimes the most powerful stories are the ones we only tell
