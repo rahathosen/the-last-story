@@ -262,22 +262,24 @@ export default function StoryPage() {
 
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-800 text-slate-100">
         {/* Header */}
-        <header className="py-3 md:py-4 px-4">
+        <header className="py-3 px-0 md:px-4 sm:px-0">
           <nav className="container mx-auto flex justify-between items-center">
             <Link
               href="/"
-              className="text-lg md:text-xl font-serif text-slate-200 hover:text-white transition-colors"
+              className="text-lg font-medium font-serif text-slate-200 hover:text-white transition-colors whitespace-nowrap"
             >
               The Last Story
             </Link>
-            <div className="flex gap-2 md:gap-4">
+
+            <div className="flex items-center gap-1 sm:gap-2 md:gap-4">
               <Button
                 onClick={handleBack}
                 variant="outline"
-                className="border-slate-600 text-slate-300 hover:bg-slate-700 bg-transparent text-sm md:text-base"
+                size="sm"
+                className="border-slate-600 text-slate-300 hover:bg-slate-700 bg-transparent px-2 sm:px-3"
               >
                 <svg
-                  className="w-4 h-4 mr-1 md:mr-2"
+                  className="w-4 h-4 sm:mr-1 md:mr-2"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -289,15 +291,17 @@ export default function StoryPage() {
                     d="M15 19l-7-7 7-7"
                   />
                 </svg>
-                <span className="hidden sm:inline">Back</span>
+                <span className="sr-only sm:not-sr-only sm:inline">Back</span>
               </Button>
+
               <Button
                 onClick={handleShare}
                 variant="outline"
-                className="border-slate-600 text-slate-300 hover:bg-slate-700 bg-transparent text-sm md:text-base"
+                size="sm"
+                className="border-slate-600 text-slate-300 hover:bg-slate-700 bg-transparent px-2 sm:px-3"
               >
                 <svg
-                  className="w-4 h-4 mr-1 md:mr-2"
+                  className="w-4 h-4 sm:mr-1 md:mr-2"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -309,11 +313,17 @@ export default function StoryPage() {
                     d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z"
                   />
                 </svg>
-                <span className="hidden sm:inline">Share</span>
+                <span className="sr-only sm:not-sr-only sm:inline">Share</span>
               </Button>
+
               <Link href="/share">
-                <Button className="bg-slate-700 hover:bg-slate-600 text-slate-200 text-sm md:text-base">
-                  <span className="hidden sm:inline">Share Your Story</span>
+                <Button
+                  size="sm"
+                  className="bg-slate-700 hover:bg-slate-600 text-slate-200 px-3 sm:px-4"
+                >
+                  <span className="sr-only sm:not-sr-only sm:inline">
+                    Share Your Story
+                  </span>
                   <span className="sm:hidden">Write</span>
                 </Button>
               </Link>
