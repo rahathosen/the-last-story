@@ -60,7 +60,7 @@ export async function GET(request: NextRequest) {
           isApproved: true,
         },
         orderBy: {
-          createdAt: "desc",
+          createdAt: "asc",
         },
         skip,
         take: limit,
