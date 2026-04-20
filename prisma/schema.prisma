@@ -20,6 +20,18 @@ model Story {
   isApproved  Boolean  @default(false)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+  loves       Love[]
 
   @@map("stories")
+}
+
+model Love {
+  id        String   @id @default(cuid())
+  storyId   String
+  story     Story    @relation(fields: [storyId], references: [id], onDelete: Cascade)
+  viewerId  String   // Anonymous viewer ID (from localStorage)
+  createdAt DateTime @default(now())
+
+  @@unique([storyId, viewerId])
+  @@map("loves")
 }

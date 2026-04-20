@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { UserAvatar } from "@/components/user-avatar";
+import { LoveButton } from "@/components/ui/love-button";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import Head from "next/head";
@@ -415,8 +416,7 @@ export default function StoryPage() {
                           </div>
                           <h3 className="text-slate-200 group-hover:text-white transition-colors text-sm md:text-base font-medium">
                             {adjacentStories.previous.title ||
-                              `Story by ${
-                                adjacentStories.previous.name || "Anonymous"
+                              `Story by ${adjacentStories.previous.name || "Anonymous"
                               }`}
                           </h3>
                         </div>
@@ -449,8 +449,7 @@ export default function StoryPage() {
                           </div>
                           <h3 className="text-slate-200 group-hover:text-white transition-colors text-sm md:text-base font-medium">
                             {adjacentStories.next.title ||
-                              `Story by ${
-                                adjacentStories.next.name || "Anonymous"
+                              `Story by ${adjacentStories.next.name || "Anonymous"
                               }`}
                           </h3>
                         </div>
@@ -463,11 +462,12 @@ export default function StoryPage() {
               )}
 
               <div className="mt-8 md:mt-12 pt-6 md:pt-8 border-t border-slate-700/50">
-                <div className="flex flex-col sm:flex-row gap-4 justify-between items-center">
-                  <p className="text-slate-400 text-sm italic text-center sm:text-left">
+                <div className="flex flex-col md:flex-row gap-4 justify-between items-center md:items-center">
+                  <p className="text-slate-400 text-sm italic text-center md:text-left whitespace-nowrap">
                     Are you prepared for a beautiful death?
                   </p>
-                  <div className="flex gap-2">
+                  <div className="flex gap-2 justify-center md:justify-end">
+                    <LoveButton slug={slug} />
                     <Button
                       onClick={handleShare}
                       variant="outline"
