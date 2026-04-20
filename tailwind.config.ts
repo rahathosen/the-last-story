@@ -75,7 +75,7 @@ const config: Config = {
       },
       fontFamily: {
         sans: ["var(--font-sans)", "Inter", "sans-serif"],
-        serif: ["var(--font-serif)", "Playfair Display", "serif"],
+        serif: ["var(--font-serif)", "Lora", "serif"],
       },
     },
   },
