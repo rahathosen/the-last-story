@@ -4,18 +4,43 @@ import { useState } from "react";
 import Link from "next/link";
 
 export default function ContactPage() {
-  const [form, setForm] = useState({ name: "", email: "", subject: "", message: "" });
+  const [form, setForm] = useState({
+    name: "",
+    email: "",
+    subject: "",
+    message: "",
+  });
   const [submitted, setSubmitted] = useState(false);
   const [sending, setSending] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.email.trim() || !form.message.trim()) return;
+
     setSending(true);
-    // Simulate a brief delay — replace with real API call if needed
-    await new Promise((res) => setTimeout(res, 800));
-    setSending(false);
-    setSubmitted(true);
+    setSubmitted(false);
+
+    try {
+      const response = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to send");
+      }
+
+      setSubmitted(true);
+      setForm({ name: "", email: "", subject: "", message: "" });
+    } catch (error) {
+      console.error(error);
+      alert("Something went wrong. Please try again later.");
+    } finally {
+      setSending(false);
+    }
   };
 
   const canSubmit = form.email.trim() && form.message.trim() && !sending;
@@ -140,7 +165,9 @@ export default function ContactPage() {
                       {icon}
                     </svg>
                   </div>
-                  <h3 className="text-sm font-medium text-slate-200">{title}</h3>
+                  <h3 className="text-sm font-medium text-slate-200">
+                    {title}
+                  </h3>
                 </div>
                 <p className="text-xs text-slate-500 leading-relaxed">{desc}</p>
               </div>
@@ -173,11 +200,19 @@ export default function ContactPage() {
                     Message Received
                   </h2>
                   <p className="text-slate-400 text-sm leading-relaxed max-w-xs">
-                    Thank you for reaching out. We&apos;ll get back to you as soon as
-                    possible, usually within 24–48 hours.
+                    Thank you for reaching out. We&apos;ll get back to you as
+                    soon as possible, usually within 24–48 hours.
                   </p>
                   <button
-                    onClick={() => { setSubmitted(false); setForm({ name: "", email: "", subject: "", message: "" }); }}
+                    onClick={() => {
+                      setSubmitted(false);
+                      setForm({
+                        name: "",
+                        email: "",
+                        subject: "",
+                        message: "",
+                      });
+                    }}
                     className="mt-6 text-xs text-indigo-400 hover:text-indigo-300 transition-colors"
                   >
                     Send another message
@@ -190,12 +225,16 @@ export default function ContactPage() {
                     <div className="space-y-1.5">
                       <label className="block text-xs font-medium text-slate-400">
                         Your Name{" "}
-                        <span className="text-slate-600 font-normal">(optional)</span>
+                        <span className="text-slate-600 font-normal">
+                          (optional)
+                        </span>
                       </label>
                       <input
                         type="text"
                         value={form.name}
-                        onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))}
+                        onChange={(e) =>
+                          setForm((p) => ({ ...p, name: e.target.value }))
+                        }
                         placeholder="Anonymous"
                         className="w-full h-10 px-3 rounded-lg bg-slate-900/50 border border-slate-700/60 text-slate-200 placeholder-slate-600 text-sm focus:outline-none focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/20 transition-colors"
                       />
@@ -207,7 +246,9 @@ export default function ContactPage() {
                       <input
                         type="email"
                         value={form.email}
-                        onChange={(e) => setForm((p) => ({ ...p, email: e.target.value }))}
+                        onChange={(e) =>
+                          setForm((p) => ({ ...p, email: e.target.value }))
+                        }
                         placeholder="you@example.com"
                         required
                         className="w-full h-10 px-3 rounded-lg bg-slate-900/50 border border-slate-700/60 text-slate-200 placeholder-slate-600 text-sm focus:outline-none focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/20 transition-colors"
@@ -219,12 +260,16 @@ export default function ContactPage() {
                   <div className="space-y-1.5">
                     <label className="block text-xs font-medium text-slate-400">
                       Subject{" "}
-                      <span className="text-slate-600 font-normal">(optional)</span>
+                      <span className="text-slate-600 font-normal">
+                        (optional)
+                      </span>
                     </label>
                     <input
                       type="text"
                       value={form.subject}
-                      onChange={(e) => setForm((p) => ({ ...p, subject: e.target.value }))}
+                      onChange={(e) =>
+                        setForm((p) => ({ ...p, subject: e.target.value }))
+                      }
                       placeholder="e.g. Story removal request"
                       className="w-full h-10 px-3 rounded-lg bg-slate-900/50 border border-slate-700/60 text-slate-200 placeholder-slate-600 text-sm focus:outline-none focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/20 transition-colors"
                     />
@@ -244,7 +289,9 @@ export default function ContactPage() {
                     </div>
                     <textarea
                       value={form.message}
-                      onChange={(e) => setForm((p) => ({ ...p, message: e.target.value }))}
+                      onChange={(e) =>
+                        setForm((p) => ({ ...p, message: e.target.value }))
+                      }
                       placeholder="Write your message here…"
                       rows={6}
                       required
@@ -259,24 +306,50 @@ export default function ContactPage() {
                     className={`
                       w-full py-3 rounded-xl text-sm font-medium transition-all duration-200
                       flex items-center justify-center gap-2
-                      ${canSubmit
-                        ? "bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-900/40"
-                        : "bg-slate-800 text-slate-600 cursor-not-allowed border border-slate-700/50"
+                      ${
+                        canSubmit
+                          ? "bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-900/40"
+                          : "bg-slate-800 text-slate-600 cursor-not-allowed border border-slate-700/50"
                       }
                     `}
                   >
                     {sending ? (
                       <>
-                        <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
-                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                        <svg
+                          className="animate-spin h-4 w-4"
+                          viewBox="0 0 24 24"
+                        >
+                          <circle
+                            className="opacity-25"
+                            cx="12"
+                            cy="12"
+                            r="10"
+                            stroke="currentColor"
+                            strokeWidth="4"
+                            fill="none"
+                          />
+                          <path
+                            className="opacity-75"
+                            fill="currentColor"
+                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                          />
                         </svg>
                         Sending…
                       </>
                     ) : (
                       <>
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                        <svg
+                          className="w-4 h-4"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"
+                          />
                         </svg>
                         Send Message
                       </>
@@ -297,13 +370,22 @@ export default function ContactPage() {
             once.&rdquo;
           </p>
           <div className="flex justify-center gap-6 text-xs text-slate-600">
-            <Link href="/privacy" className="hover:text-slate-400 transition-colors">
+            <Link
+              href="/privacy"
+              className="hover:text-slate-400 transition-colors"
+            >
               Privacy
             </Link>
-            <Link href="/terms" className="hover:text-slate-400 transition-colors">
+            <Link
+              href="/terms"
+              className="hover:text-slate-400 transition-colors"
+            >
               Terms
             </Link>
-            <Link href="/contact" className="text-slate-500 hover:text-slate-300 transition-colors">
+            <Link
+              href="/contact"
+              className="text-slate-500 hover:text-slate-300 transition-colors"
+            >
               Contact
             </Link>
           </div>
