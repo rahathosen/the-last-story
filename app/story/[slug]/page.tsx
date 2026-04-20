@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { UserAvatar } from "@/components/user-avatar";
+import { LoveButton } from "@/components/love-button";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import Head from "next/head";
@@ -467,7 +468,8 @@ export default function StoryPage() {
                   <p className="text-slate-400 text-sm italic text-center sm:text-left">
                     Are you prepared for a beautiful death?
                   </p>
-                  <div className="flex gap-2">
+                  <div className="flex gap-2 flex-wrap justify-center sm:justify-end">
+                    <LoveButton slug={slug} />
                     <Button
                       onClick={handleShare}
                       variant="outline"
