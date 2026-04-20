@@ -185,10 +185,10 @@ export default function TheLastStory() {
           key={i}
           onClick={() => handlePageChange(i)}
           variant={i === pagination.currentPage ? "default" : "outline"}
-          className={`w-9 h-9 md:w-11 md:h-11 p-0 text-sm font-medium ${
+          className={`w-8 h-8 md:w-10 md:h-10 p-0 text-sm ${
             i === pagination.currentPage
-              ? "bg-accent text-accent-foreground"
-              : "border-border text-muted-foreground hover:bg-secondary bg-transparent"
+              ? "bg-slate-600 text-slate-200"
+              : "border-slate-600 text-slate-300 hover:bg-slate-700 bg-transparent"
           }`}
         >
           {i}
@@ -197,12 +197,12 @@ export default function TheLastStory() {
     }
 
     return (
-      <div className="flex items-center justify-center gap-2 md:gap-3 mt-14 md:mt-16">
+      <div className="flex items-center justify-center gap-1 md:gap-2 mt-12">
         <Button
           onClick={() => handlePageChange(pagination.currentPage - 1)}
           disabled={!pagination.hasPrev}
           variant="outline"
-          className="w-9 h-9 md:w-11 md:h-11 p-0 border-border text-muted-foreground hover:bg-secondary bg-transparent disabled:opacity-40 disabled:cursor-not-allowed"
+          className="w-8 h-8 md:w-10 md:h-10 p-0 border-slate-600 text-slate-300 hover:bg-slate-700 bg-transparent disabled:opacity-50"
         >
           <svg
             className="w-3 h-3 md:w-4 md:h-4"
@@ -223,7 +223,7 @@ export default function TheLastStory() {
           onClick={() => handlePageChange(pagination.currentPage + 1)}
           disabled={!pagination.hasNext}
           variant="outline"
-          className="w-9 h-9 md:w-11 md:h-11 p-0 border-border text-muted-foreground hover:bg-secondary bg-transparent disabled:opacity-40 disabled:cursor-not-allowed"
+          className="w-8 h-8 md:w-10 md:h-10 p-0 border-slate-600 text-slate-300 hover:bg-slate-700 bg-transparent disabled:opacity-50"
         >
           <svg
             className="w-3 h-3 md:w-4 md:h-4"
@@ -244,17 +244,17 @@ export default function TheLastStory() {
   };
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-800 text-slate-100">
       {/* Zen Mode Overlay - Improved for mobile scrolling */}
       {zenModeStoryId && zenModeStory && (
-        <div className="fixed inset-0 bg-background/95 backdrop-blur-sm z-50 overflow-y-auto">
+        <div className="fixed inset-0 bg-slate-900/95 backdrop-blur-sm z-50 overflow-y-auto">
           <div className="min-h-screen flex items-start justify-center p-2 md:p-4 py-4 md:py-8">
             <div className="w-full max-w-4xl">
-              <Card className="bg-card border-border/50 backdrop-blur-sm">
+              <Card className="bg-slate-800/90 border-slate-600/70 backdrop-blur-sm">
                 <CardContent className="p-4 md:p-8 lg:p-12 relative">
                   <button
                     onClick={() => handleZenMode(zenModeStory)}
-                    className="sticky top-0 float-right mb-4 p-2 rounded-full bg-secondary text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-all duration-300 z-10"
+                    className="sticky top-0 float-right mb-4 p-2 rounded-full bg-slate-700 text-slate-300 hover:bg-slate-600 hover:text-slate-200 transition-all duration-300 z-10"
                     title="Exit Zen Mode"
                   >
                     <svg
@@ -272,15 +272,15 @@ export default function TheLastStory() {
 
                   <div className="clear-both">
                     {zenModeStory.title && (
-                      <h2 className="text-2xl md:text-3xl lg:text-4xl font-serif text-foreground mb-6 md:mb-8 leading-tight">
+                      <h2 className="text-xl md:text-2xl lg:text-3xl font-serif text-slate-200 mb-4 md:mb-6 leading-tight">
                         {zenModeStory.title}
                       </h2>
                     )}
 
-                    <div className="flex items-center gap-3 md:gap-4 mb-8 md:mb-10 text-muted-foreground flex-wrap">
+                    <div className="flex items-center gap-3 md:gap-4 mb-6 md:mb-8 text-slate-400 flex-wrap">
                       <div className="flex items-center gap-2 md:gap-3">
                         <UserAvatar name={zenModeStory.name} size="md" />
-                        <span className="text-sm md:text-base text-foreground font-medium">
+                        <span className="text-sm md:text-base">
                           By {zenModeStory.name || "Anonymous"}
                         </span>
                       </div>
@@ -291,7 +291,7 @@ export default function TheLastStory() {
                             href={zenModeStory.socialMedia.url}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="flex items-center gap-1 hover:text-foreground transition-colors text-sm md:text-base"
+                            className="flex items-center gap-1 hover:text-slate-300 transition-colors text-sm md:text-base"
                           >
                             <svg
                               className="w-4 h-4"
@@ -311,14 +311,14 @@ export default function TheLastStory() {
                         </>
                       )}
                       <span className="hidden sm:inline">•</span>
-                      <span className="text-sm md:text-base text-muted-foreground">
+                      <span className="text-sm md:text-base">
                         {formatDate(zenModeStory.createdAt)}
                       </span>
                     </div>
 
-                    <div className="prose prose-lg max-w-none my-8 md:my-12">
+                    <div className="prose prose-lg prose-invert max-w-none">
                       <p
-                        className="text-foreground leading-8 md:leading-9 text-base md:text-lg lg:text-lg whitespace-pre-wrap reading-text"
+                        className="text-slate-300 leading-relaxed md:leading-loose text-base md:text-lg lg:text-xl whitespace-pre-wrap"
                         style={{
                           fontFamily:
                             "SolaimanLipi, Kalpurush, Arial, sans-serif",
@@ -328,11 +328,11 @@ export default function TheLastStory() {
                       </p>
                     </div>
 
-                    <div className="mt-8 md:mt-12 pt-6 md:pt-8 border-t border-border/30 flex justify-center">
+                    <div className="mt-6 md:mt-8 pt-4 md:pt-6 border-t border-slate-700/50 flex justify-center">
                       <Button
                         onClick={() => handleShare(zenModeStory)}
                         variant="outline"
-                        className="border-border text-foreground hover:bg-secondary bg-transparent text-sm md:text-base"
+                        className="border-slate-600 text-slate-300 hover:bg-slate-700 bg-transparent text-sm md:text-base"
                       >
                         <svg
                           className="w-4 h-4 mr-2"
@@ -359,15 +359,15 @@ export default function TheLastStory() {
       )}
 
       {/* Header */}
-      <header className="py-3 md:py-4 border-b border-border/30">
-        <nav className="container mx-auto flex justify-between items-center px-4">
-          <h1 className="text-lg md:text-xl font-serif text-foreground font-medium">
+      <header className="py-3 md:py-4">
+        <nav className="container mx-auto flex justify-between items-center">
+          <h1 className="text-lg md:text-xl font-serif text-slate-200">
             The Last Story
           </h1>
           <div className="flex gap-4 md:gap-4 lg:gap-8">
             <button
               onClick={() => scrollToSection(homeRef)}
-              className="text-muted-foreground hover:text-foreground transition-colors duration-300 relative group flex items-center gap-1 md:gap-2"
+              className="text-slate-300 hover:text-white transition-colors duration-300 relative group flex items-center gap-1 md:gap-2"
             >
               <span className="hidden md:inline">Home</span>
               <svg
@@ -383,11 +383,11 @@ export default function TheLastStory() {
                   d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
                 />
               </svg>
-              <span className="absolute bottom-0 left-0 w-0 h-px bg-accent group-hover:w-full transition-all duration-300"></span>
+              <span className="absolute bottom-0 left-0 w-0 h-px bg-slate-300 group-hover:w-full transition-all duration-300"></span>
             </button>
             <Link
               href="/share"
-              className="text-muted-foreground hover:text-foreground transition-colors duration-300 relative group flex items-center gap-1 md:gap-2"
+              className="text-slate-300 hover:text-white transition-colors duration-300 relative group flex items-center gap-1 md:gap-2"
             >
               <span className="hidden md:inline">Write Your Story</span>
               <svg
@@ -410,65 +410,65 @@ export default function TheLastStory() {
       </header>
 
       {/* Hero Section */}
-      <section className="pt-8 md:pt-12 pb-16 md:pb-20 px-4">
+      <section className="pt-6 md:pt-8 pb-12 md:pb-16 px-4">
         <div className="container mx-auto text-center max-w-4xl">
-          <div className="mb-8 md:mb-12">
-            <h2 className="text-4xl md:text-5xl lg:text-6xl font-serif text-foreground mb-6 md:mb-8 leading-tight font-semibold">
+          <div className="mb-6 md:mb-8">
+            <h2 className="text-3xl md:text-4xl lg:text-6xl font-serif text-slate-200 mb-4 md:mb-6 leading-tight">
               The Last Story
             </h2>
-            <div className="text-center mb-6">
-              <p className="text-lg md:text-xl lg:text-2xl text-muted-foreground font-light italic leading-relaxed mb-3">
+            <div className="text-center mb-4">
+              <p className="text-lg md:text-xl lg:text-2xl text-slate-300 font-light italic leading-relaxed mb-2">
                 "Every soul will taste death"
               </p>
-              <p className="text-xs md:text-sm text-muted-foreground/70">
+              <p className="text-xs md:text-sm text-slate-400">
                 Surah Al-Anbya - 35
               </p>
             </div>
           </div>
-          <div className="w-20 md:w-28 h-px bg-gradient-to-r from-transparent via-accent/40 to-transparent mx-auto"></div>
+          <div className="w-16 md:w-24 h-px bg-gradient-to-r from-transparent via-slate-400 to-transparent mx-auto"></div>
         </div>
       </section>
 
       {/* Stories Section */}
-      <section ref={homeRef} className="py-16 md:py-20 px-4">
+      <section ref={homeRef} className="py-12 md:py-16">
         <div className="container mx-auto max-w-4xl">
-          <h3 className="text-3xl md:text-4xl font-serif text-foreground mb-12 md:mb-16 text-center font-semibold">
+          <h3 className="text-2xl md:text-3xl font-serif text-slate-200 mb-8 md:mb-12 text-center">
             Stories of Love and Memory
           </h3>
 
           {loading ? (
-            <div className="text-center py-16">
-              <div className="animate-spin rounded-full h-10 w-10 md:h-14 md:w-14 border-2 border-muted-foreground/20 border-t-foreground mx-auto"></div>
-              <p className="text-muted-foreground mt-6 text-sm md:text-base font-medium">
+            <div className="text-center py-12">
+              <div className="animate-spin rounded-full h-8 w-8 md:h-12 md:w-12 border-b-2 border-slate-300 mx-auto"></div>
+              <p className="text-slate-400 mt-4 text-sm md:text-base">
                 Loading stories...
               </p>
             </div>
           ) : stories.length === 0 ? (
-            <div className="text-center py-16">
-              <p className="text-muted-foreground text-base md:text-lg mb-6">
+            <div className="text-center py-12">
+              <p className="text-slate-400 text-base md:text-lg mb-4">
                 No stories have been shared yet.
               </p>
               <Link
                 href="/share"
-                className="text-accent hover:text-accent underline transition-colors text-sm md:text-base font-medium"
+                className="text-slate-300 hover:text-white underline transition-colors text-sm md:text-base"
               >
                 Be the first to share your story
               </Link>
             </div>
           ) : (
             <>
-              <div className="space-y-6 md:space-y-8">
+              <div className="space-y-4 md:space-y-6">
                 {stories.map((story) => (
                   <Card
                     key={story.id}
-                    className="bg-card border-border/50 backdrop-blur-sm hover:border-border hover:bg-card/80 transition-all duration-300 shadow-sm"
+                    className="bg-slate-800/50 border-slate-700/50 backdrop-blur-sm hover:bg-slate-800/70 transition-all duration-300"
                   >
-                    <CardContent className="p-5 md:p-7 relative">
+                    <CardContent className="p-4 md:p-6 relative">
                       {/* Action Buttons */}
-                      <div className="absolute top-4 md:top-5 right-4 md:right-5 flex gap-2 md:gap-3">
+                      <div className="absolute top-3 md:top-4 right-3 md:right-4 flex gap-1 md:gap-2">
                         <button
                           onClick={() => handleShare(story)}
-                          className="p-2 md:p-2.5 rounded-full bg-secondary/50 text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-all duration-300"
+                          className="p-1.5 md:p-2 rounded-full bg-slate-700/50 text-slate-400 hover:bg-slate-600/50 hover:text-slate-300 transition-all duration-300"
                           title="Share this story"
                         >
                           <svg
@@ -489,7 +489,7 @@ export default function TheLastStory() {
                         </button>
                         <button
                           onClick={() => handleZenMode(story)}
-                          className="p-2 md:p-2.5 rounded-full bg-secondary/50 text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-all duration-300"
+                          className="p-1.5 md:p-2 rounded-full bg-slate-700/50 text-slate-400 hover:bg-slate-600/50 hover:text-slate-300 transition-all duration-300"
                           title="Enter Zen Mode"
                         >
                           <svg
@@ -509,13 +509,13 @@ export default function TheLastStory() {
 
                       {story.title && (
                         <Link href={`/story/${story.slug}`}>
-                          <h4 className="text-lg md:text-xl lg:text-2xl font-serif text-foreground mb-4 hover:text-accent transition-colors cursor-pointer pr-16 md:pr-20 font-semibold">
+                          <h4 className="text-base md:text-lg lg:text-xl font-serif text-slate-200 mb-3 hover:text-white transition-colors cursor-pointer pr-16 md:pr-20">
                             {story.title}
                           </h4>
                         </Link>
                       )}
 
-                      <div className="flex items-center gap-2 md:gap-3 mb-5 md:mb-6 text-xs md:text-sm text-muted-foreground flex-wrap">
+                      <div className="flex items-center gap-2 md:gap-3 mb-3 md:mb-4 text-xs md:text-sm text-slate-400 flex-wrap">
                         <div className="flex items-center gap-1.5 md:gap-2">
                           <UserAvatar name={story.name} size="sm" />
                           <span>By {story.name || "Anonymous"}</span>
@@ -527,7 +527,7 @@ export default function TheLastStory() {
                               href={story.socialMedia.url}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="flex items-center gap-1 hover:text-foreground transition-colors font-medium"
+                              className="flex items-center gap-1 hover:text-slate-300 transition-colors"
                             >
                               <svg
                                 className="w-3 h-3"
@@ -550,7 +550,7 @@ export default function TheLastStory() {
 
                       <Link href={`/story/${story.slug}`}>
                         <p
-                          className="text-foreground leading-8 text-sm md:text-base cursor-pointer hover:text-muted-foreground transition-colors line-clamp-4"
+                          className="text-slate-300 leading-relaxed text-sm md:text-base cursor-pointer hover:text-slate-200 transition-colors line-clamp-4"
                           style={{
                             fontFamily:
                               "SolaimanLipi, Kalpurush, Arial, sans-serif",
@@ -566,7 +566,7 @@ export default function TheLastStory() {
                         <Link href={`/story/${story.slug}`}>
                           <Button
                             variant="link"
-                            className="p-0 h-auto text-accent hover:text-accent mt-4 text-xs md:text-sm font-semibold"
+                            className="p-0 h-auto text-slate-400 hover:text-slate-300 mt-2 text-xs md:text-sm"
                           >
                             Read full story →
                           </Button>
@@ -581,7 +581,7 @@ export default function TheLastStory() {
               {pagination.totalPages > 1 && renderPagination()}
 
               {/* Results Info */}
-              <div className="text-center mt-8 md:mt-10 text-muted-foreground text-xs md:text-sm font-medium">
+              <div className="text-center mt-6 md:mt-8 text-slate-400 text-xs md:text-sm">
                 Showing {stories.length} of {pagination.totalCount} stories
               </div>
             </>
@@ -590,20 +590,20 @@ export default function TheLastStory() {
       </section>
 
       {/* Footer */}
-      <footer className="py-12 md:py-16 px-4 border-t border-border/30 mt-12 md:mt-16">
+      <footer className="py-8 md:py-12 px-4 border-t border-slate-700/50">
         <div className="container mx-auto max-w-4xl text-center">
-          <p className="text-muted-foreground text-base md:text-lg italic mb-6 md:mb-8 font-light leading-8">
+          <p className="text-slate-300 text-base md:text-lg italic mb-4 md:mb-6 font-light">
             "Sometimes the most powerful stories are the ones we only tell
             once."
           </p>
-          <div className="flex justify-center gap-6 md:gap-10 text-xs md:text-sm text-muted-foreground/70">
-            <a href="#" className="hover:text-foreground transition-colors font-medium">
+          <div className="flex justify-center gap-4 md:gap-8 text-xs md:text-sm text-slate-400">
+            <a href="#" className="hover:text-slate-300 transition-colors">
               Privacy
             </a>
-            <a href="#" className="hover:text-foreground transition-colors font-medium">
+            <a href="#" className="hover:text-slate-300 transition-colors">
               Terms
             </a>
-            <a href="#" className="hover:text-foreground transition-colors font-medium">
+            <a href="#" className="hover:text-slate-300 transition-colors">
               Contact
             </a>
           </div>
