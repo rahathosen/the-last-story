@@ -186,25 +186,22 @@ export default function AdminApprovePage() {
 
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen bg-background text-foreground flex items-center justify-center p-4">
-        <Card className="w-full max-w-md bg-card border-border/50 backdrop-blur-sm shadow-lg">
-          <CardHeader className="space-y-2">
-            <CardTitle className="text-center text-2xl font-serif text-foreground">
-              Admin Access
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-800 text-slate-100 flex items-center justify-center p-4">
+        <Card className="w-full max-w-md bg-slate-800/50 border-slate-700/50 backdrop-blur-sm">
+          <CardHeader>
+            <CardTitle className="text-center text-slate-200">
+              Admin Login
             </CardTitle>
-            <p className="text-center text-muted-foreground text-sm">
-              Manage and approve stories
-            </p>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleLogin} className="space-y-4">
               {authError && (
-                <div className="p-3 bg-destructive/20 border border-destructive/50 rounded-lg text-destructive text-sm font-medium">
+                <div className="p-3 bg-red-900/50 border border-red-700/50 rounded text-red-300 text-sm">
                   {authError}
                 </div>
               )}
               <div>
-                <label htmlFor="username" className="block text-foreground mb-2 font-medium text-sm">
+                <label htmlFor="username" className="block text-slate-300 mb-2">
                   Username
                 </label>
                 <Input
@@ -212,13 +209,12 @@ export default function AdminApprovePage() {
                   type="text"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
-                  className="bg-secondary border-border text-foreground placeholder-muted-foreground focus:border-accent focus:ring-accent"
-                  placeholder="Enter username"
+                  className="bg-slate-800/50 border-slate-700/50 text-slate-200"
                   required
                 />
               </div>
               <div>
-                <label htmlFor="password" className="block text-foreground mb-2 font-medium text-sm">
+                <label htmlFor="password" className="block text-slate-300 mb-2">
                   Password
                 </label>
                 <Input
@@ -226,15 +222,14 @@ export default function AdminApprovePage() {
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="bg-secondary border-border text-foreground placeholder-muted-foreground focus:border-accent focus:ring-accent"
-                  placeholder="Enter password"
+                  className="bg-slate-800/50 border-slate-700/50 text-slate-200"
                   required
                 />
               </div>
               <Button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-accent hover:bg-accent/90 text-accent-foreground font-medium py-2"
+                className="w-full bg-slate-700 hover:bg-slate-600 text-slate-200"
               >
                 {loading ? "Logging in..." : "Login"}
               </Button>
@@ -246,25 +241,25 @@ export default function AdminApprovePage() {
   }
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-800 text-slate-100">
       {/* Header */}
-      <header className="py-4 px-4 border-b border-border/30 sticky top-0 z-40 bg-background/95 backdrop-blur-sm">
-        <nav className="container mx-auto flex justify-between items-center gap-4">
-          <div className="flex items-center gap-3">
+      <header className="py-4 px-4 border-b border-slate-700/50">
+        <nav className="container mx-auto flex justify-between items-center">
+          <div className="flex items-center gap-4">
             <Link
               href="/"
-              className="text-xl font-serif text-foreground hover:text-accent transition-colors font-medium"
+              className="text-xl font-serif text-slate-200 hover:text-white transition-colors"
             >
               The Last Story
             </Link>
-            <Badge variant="secondary" className="bg-secondary text-foreground text-xs">
+            <Badge variant="secondary" className="bg-slate-700 text-slate-200">
               Admin Panel
             </Badge>
           </div>
           <Button
             onClick={handleLogout}
             variant="outline"
-            className="border-border text-muted-foreground hover:bg-secondary bg-transparent text-sm"
+            className="border-slate-600 text-slate-300 hover:bg-slate-700 bg-transparent"
           >
             Logout
           </Button>
@@ -272,163 +267,145 @@ export default function AdminApprovePage() {
       </header>
 
       {/* Main Content */}
-      <main className="container mx-auto px-4 py-6 md:py-8">
+      <main className="container mx-auto px-4 py-8">
         <div className="mb-8">
-          <h1 className="text-3xl md:text-4xl font-serif text-foreground mb-2 font-semibold">
+          <h1 className="text-3xl font-serif text-slate-200 mb-2">
             Story Management
           </h1>
-          <p className="text-muted-foreground">Review, approve, and manage submitted stories</p>
+          <p className="text-slate-400">Review and approve submitted stories</p>
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
-          <Card className="bg-card border-border/50">
-            <CardContent className="p-5 md:p-6">
-              <div className="text-3xl font-bold text-foreground">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+          <Card className="bg-slate-800/50 border-slate-700/50">
+            <CardContent className="p-4">
+              <div className="text-2xl font-bold text-slate-200">
                 {stories.length}
               </div>
-              <div className="text-muted-foreground text-sm mt-1">Total Stories</div>
+              <div className="text-slate-400 text-sm">Total Stories</div>
             </CardContent>
           </Card>
-          <Card className="bg-card border-border/50">
-            <CardContent className="p-5 md:p-6">
-              <div className="text-3xl font-bold text-green-400">
+          <Card className="bg-slate-800/50 border-slate-700/50">
+            <CardContent className="p-4">
+              <div className="text-2xl font-bold text-green-400">
                 {stories.filter((s) => s.isApproved).length}
               </div>
-              <div className="text-muted-foreground text-sm mt-1">Approved</div>
+              <div className="text-slate-400 text-sm">Approved</div>
             </CardContent>
           </Card>
-          <Card className="bg-card border-border/50">
-            <CardContent className="p-5 md:p-6">
-              <div className="text-3xl font-bold text-yellow-400">
+          <Card className="bg-slate-800/50 border-slate-700/50">
+            <CardContent className="p-4">
+              <div className="text-2xl font-bold text-yellow-400">
                 {stories.filter((s) => !s.isApproved).length}
               </div>
-              <div className="text-muted-foreground text-sm mt-1">Pending</div>
+              <div className="text-slate-400 text-sm">Pending</div>
             </CardContent>
           </Card>
         </div>
 
         {/* Filters and Sorting */}
-        <Card className="bg-card border-border/50 mb-6">
-          <CardContent className="p-4 md:p-6">
-            <div className="space-y-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                <div>
-                  <label className="block text-foreground mb-2 text-sm font-medium">
-                    Status
-                  </label>
-                  <Select value={statusFilter} onValueChange={setStatusFilter}>
-                    <SelectTrigger className="bg-secondary border-border text-foreground">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent className="bg-card border-border">
-                      <SelectItem
-                        value="all"
-                        className="text-foreground focus:bg-secondary"
-                      >
-                        All Stories
-                      </SelectItem>
-                      <SelectItem
-                        value="pending"
-                        className="text-foreground focus:bg-secondary"
-                      >
-                        Pending Only
-                      </SelectItem>
-                      <SelectItem
-                        value="approved"
-                        className="text-foreground focus:bg-secondary"
-                      >
-                        Approved Only
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div>
-                  <label className="block text-foreground mb-2 text-sm font-medium">
-                    Sort By
-                  </label>
-                  <Select value={sortBy} onValueChange={setSortBy}>
-                    <SelectTrigger className="bg-secondary border-border text-foreground">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent className="bg-card border-border">
-                      <SelectItem
-                        value="createdAt"
-                        className="text-foreground focus:bg-secondary"
-                      >
-                        Date Created
-                      </SelectItem>
-                      <SelectItem
-                        value="name"
-                        className="text-foreground focus:bg-secondary"
-                      >
-                        Author Name
-                      </SelectItem>
-                      <SelectItem
-                        value="title"
-                        className="text-foreground focus:bg-secondary"
-                      >
-                        Story Title
-                      </SelectItem>
-                      <SelectItem
-                        value="isApproved"
-                        className="text-foreground focus:bg-secondary"
-                      >
-                        Approval Status
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div>
-                  <label className="block text-foreground mb-2 text-sm font-medium">
-                    Order
-                  </label>
-                  <Select value={sortOrder} onValueChange={setSortOrder}>
-                    <SelectTrigger className="bg-secondary border-border text-foreground">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent className="bg-card border-border">
-                      <SelectItem
-                        value="desc"
-                        className="text-foreground focus:bg-secondary"
-                      >
-                        Descending
-                      </SelectItem>
-                      <SelectItem
-                        value="asc"
-                        className="text-foreground focus:bg-secondary"
-                      >
-                        Ascending
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+        <Card className="bg-slate-800/50 border-slate-700/50 mb-6">
+          <CardContent className="p-4">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div>
+                <label className="block text-slate-300 mb-2 text-sm">
+                  Status Filter
+                </label>
+                <Select value={statusFilter} onValueChange={setStatusFilter}>
+                  <SelectTrigger className="bg-slate-800/50 border-slate-700/50 text-slate-200">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="bg-slate-800 border-slate-700">
+                    <SelectItem
+                      value="all"
+                      className="text-slate-200 focus:bg-slate-700"
+                    >
+                      All Stories
+                    </SelectItem>
+                    <SelectItem
+                      value="pending"
+                      className="text-slate-200 focus:bg-slate-700"
+                    >
+                      Pending Only
+                    </SelectItem>
+                    <SelectItem
+                      value="approved"
+                      className="text-slate-200 focus:bg-slate-700"
+                    >
+                      Approved Only
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
 
-              <div className="flex gap-2 flex-wrap">
+              <div>
+                <label className="block text-slate-300 mb-2 text-sm">
+                  Sort By
+                </label>
+                <Select value={sortBy} onValueChange={setSortBy}>
+                  <SelectTrigger className="bg-slate-800/50 border-slate-700/50 text-slate-200">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="bg-slate-800 border-slate-700">
+                    <SelectItem
+                      value="createdAt"
+                      className="text-slate-200 focus:bg-slate-700"
+                    >
+                      Date Created
+                    </SelectItem>
+                    <SelectItem
+                      value="name"
+                      className="text-slate-200 focus:bg-slate-700"
+                    >
+                      Author Name
+                    </SelectItem>
+                    <SelectItem
+                      value="title"
+                      className="text-slate-200 focus:bg-slate-700"
+                    >
+                      Story Title
+                    </SelectItem>
+                    <SelectItem
+                      value="isApproved"
+                      className="text-slate-200 focus:bg-slate-700"
+                    >
+                      Approval Status
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <label className="block text-slate-300 mb-2 text-sm">
+                  Sort Order
+                </label>
+                <Select value={sortOrder} onValueChange={setSortOrder}>
+                  <SelectTrigger className="bg-slate-800/50 border-slate-700/50 text-slate-200">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="bg-slate-800 border-slate-700">
+                    <SelectItem
+                      value="desc"
+                      className="text-slate-200 focus:bg-slate-700"
+                    >
+                      Descending
+                    </SelectItem>
+                    <SelectItem
+                      value="asc"
+                      className="text-slate-200 focus:bg-slate-700"
+                    >
+                      Ascending
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="flex items-end">
                 <Button
                   onClick={fetchStories}
-                  className="flex-1 min-w-[140px] bg-accent hover:bg-accent/90 text-accent-foreground font-medium"
+                  className="w-full bg-slate-700 hover:bg-slate-600 text-slate-200"
                 >
-                  Apply
-                </Button>
-                <Button
-                  onClick={async () => {
-                    const response = await fetch("/api/admin/stories?format=csv");
-                    const csv = await response.text();
-                    const blob = new Blob([csv], { type: "text/csv" });
-                    const url = window.URL.createObjectURL(blob);
-                    const a = document.createElement("a");
-                    a.href = url;
-                    a.download = `stories-${new Date().toISOString().split("T")[0]}.csv`;
-                    a.click();
-                  }}
-                  variant="outline"
-                  className="flex-1 min-w-[140px] border-border text-muted-foreground hover:bg-secondary font-medium"
-                >
-                  Export CSV
+                  Apply Filters
                 </Button>
               </div>
             </div>
@@ -436,122 +413,113 @@ export default function AdminApprovePage() {
         </Card>
 
         {/* Stories List */}
-        <div className="space-y-4">
-          {filteredStories.length === 0 ? (
-            <Card className="bg-card border-border/50">
-              <CardContent className="p-8 text-center">
-                <p className="text-muted-foreground">No stories found</p>
-              </CardContent>
-            </Card>
-          ) : (
-            filteredStories.map((story) => (
-              <Card
-                key={story.id}
-                className="bg-card border-border/50 backdrop-blur-sm hover:border-border/70 transition-all"
-              >
-                <CardContent className="p-4 md:p-6">
-                  <div className="space-y-4">
-                    {/* Title and Status */}
-                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-                      <div className="flex-1">
-                        {story.title && (
-                          <h3 className="text-lg md:text-xl font-serif text-foreground font-semibold">
-                            {story.title}
-                          </h3>
-                        )}
-                      </div>
+        <div className="space-y-6">
+          {filteredStories.map((story) => (
+            <Card
+              key={story.id}
+              className="bg-slate-800/50 border-slate-700/50 backdrop-blur-sm"
+            >
+              <CardContent className="p-6">
+                <div className="flex justify-between items-start mb-4">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-3 mb-3">
+                      {story.title && (
+                        <h3 className="text-xl font-serif text-slate-200">
+                          {story.title}
+                        </h3>
+                      )}
                       <Badge
                         variant={story.isApproved ? "default" : "secondary"}
-                        className={`w-fit ${
-                          story.isApproved
-                            ? "bg-green-600/80 text-white"
-                            : "bg-yellow-600/80 text-white"
-                        }`}
+                        className={
+                          story.isApproved ? "bg-green-600" : "bg-yellow-600"
+                        }
                       >
                         {story.isApproved ? "Approved" : "Pending"}
                       </Badge>
                     </div>
-
-                    {/* Author and Meta Info */}
-                    <div className="flex flex-col sm:flex-row sm:items-center gap-3 text-sm text-muted-foreground flex-wrap">
+                    <div className="flex items-center gap-4 text-sm text-slate-400 mb-3">
                       <div className="flex items-center gap-2">
                         <UserAvatar name={story.name} size="sm" />
-                        <span className="font-medium text-foreground">
-                          {story.name || "Anonymous"}
-                        </span>
+                        <span>By {story.name || "Anonymous"}</span>
                       </div>
-                      <span className="hidden sm:inline">•</span>
-                      <span className="text-xs md:text-sm">{formatDate(story.createdAt)}</span>
+                      <span>•</span>
+                      <span>{formatDate(story.createdAt)}</span>
                       {story.socialMedia && (
                         <>
-                          <span className="hidden sm:inline">•</span>
-                          <span className="text-xs md:text-sm bg-secondary px-2 py-1 rounded">
-                            {story.socialMedia.platform}
-                          </span>
+                          <span>•</span>
+                          <span>{story.socialMedia.platform}</span>
                         </>
                       )}
                     </div>
-
-                    {/* Content Preview */}
-                    <p className="text-foreground leading-7 line-clamp-3 text-sm md:text-base">
+                    <p className="text-slate-300 leading-relaxed mb-4 line-clamp-3">
                       {story.content}
                     </p>
-
-                    {/* Shareable URL */}
-                    <div className="bg-secondary/30 border border-border/50 rounded-lg p-3 md:p-4">
-                      <p className="text-xs md:text-sm text-muted-foreground mb-2 font-medium">
-                        Shareable Link:
-                      </p>
-                      <div className="flex flex-col sm:flex-row gap-2 items-start sm:items-center">
-                        <code className="bg-background px-3 py-2 rounded text-foreground text-xs break-all flex-1">
-                          {getShareableUrl(story.slug)}
-                        </code>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="border-border text-muted-foreground hover:bg-secondary w-full sm:w-auto text-xs"
-                          onClick={() =>
-                            navigator.clipboard.writeText(
-                              getShareableUrl(story.slug)
-                            )
-                          }
-                        >
-                          Copy
-                        </Button>
-                      </div>
-                    </div>
-
-                    {/* Action Buttons */}
-                    <div className="flex gap-2 flex-wrap pt-2">
-                      {!story.isApproved && (
-                        <Button
-                          onClick={() => handleApprove(story.id, true)}
-                          className="flex-1 sm:flex-none bg-green-600 hover:bg-green-700 text-white font-medium"
-                        >
-                          Approve
-                        </Button>
-                      )}
-                      {story.isApproved && (
-                        <Button
-                          onClick={() => handleApprove(story.id, false)}
-                          variant="outline"
-                          className="flex-1 sm:flex-none border-yellow-600 text-yellow-400 hover:bg-yellow-600/10 font-medium"
-                        >
-                          Unapprove
-                        </Button>
-                      )}
-                      <Link
-                        href={`/story/${story.slug}`}
-                        target="_blank"
-                        className="flex-1 sm:flex-none inline-flex items-center justify-center px-4 py-2 text-sm border border-border text-muted-foreground hover:bg-secondary rounded-lg transition-colors font-medium"
+                    <div className="flex items-center gap-2 text-sm text-slate-400">
+                      <span>Shareable URL:</span>
+                      <code className="bg-slate-700/50 px-2 py-1 rounded text-slate-300 text-xs">
+                        {getShareableUrl(story.slug)}
+                      </code>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="h-6 px-2 text-xs border-slate-600 bg-transparent"
+                        onClick={() =>
+                          navigator.clipboard.writeText(
+                            getShareableUrl(story.slug)
+                          )
+                        }
                       >
-                        View Story ↗
-                      </Link>
+                        Copy
+                      </Button>
                     </div>
                   </div>
-                </CardContent>
-              </Card>
-            ))
+                </div>
+
+                <div className="flex gap-2 flex-wrap">
+                  {!story.isApproved && (
+                    <Button
+                      onClick={() => handleApprove(story.id, true)}
+                      className="bg-green-600 hover:bg-green-700 text-white"
+                    >
+                      Approve
+                    </Button>
+                  )}
+                  {story.isApproved && (
+                    <Button
+                      onClick={() => handleApprove(story.id, false)}
+                      variant="outline"
+                      className="border-yellow-600 text-yellow-400 hover:bg-yellow-600/10"
+                    >
+                      Unapprove
+                    </Button>
+                  )}
+                  {/* <Button
+                    onClick={() => handleDelete(story.id)}
+                    variant="outline"
+                    className="border-red-600 text-red-400 hover:bg-red-600/10"
+                  >
+                    Delete
+                  </Button> */}
+                  <Link
+                    href={`/story/${story.slug}`}
+                    target="_blank"
+                    className="inline-flex items-center px-3 py-2 text-sm border border-slate-600 text-slate-300 hover:bg-slate-700 rounded-md transition-colors"
+                  >
+                    View Story
+                  </Link>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+
+          {filteredStories.length === 0 && (
+            <div className="text-center py-12">
+              <p className="text-slate-400 text-lg">
+                {statusFilter === "all"
+                  ? "No stories submitted yet."
+                  : `No ${statusFilter} stories found.`}
+              </p>
+            </div>
           )}
         </div>
       </main>

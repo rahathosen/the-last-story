@@ -165,20 +165,30 @@ export default function TheLastStory() {
 
   const renderPagination = () => {
     const pages = [];
-    const { totalPages, currentPage } = pagination;
-    
-    // Show first 5 pages
-    const firstPagesToShow = Math.min(5, totalPages);
-    for (let i = 1; i <= firstPagesToShow; i++) {
+    const maxVisiblePages = 5;
+    let startPage = Math.max(
+      1,
+      pagination.currentPage - Math.floor(maxVisiblePages / 2)
+    );
+    const endPage = Math.min(
+      pagination.totalPages,
+      startPage + maxVisiblePages - 1
+    );
+
+    if (endPage - startPage + 1 < maxVisiblePages) {
+      startPage = Math.max(1, endPage - maxVisiblePages + 1);
+    }
+
+    for (let i = startPage; i <= endPage; i++) {
       pages.push(
         <Button
           key={i}
           onClick={() => handlePageChange(i)}
-          variant={i === currentPage ? "default" : "outline"}
-          className={`w-9 h-9 md:w-11 md:h-11 p-0 text-sm font-medium rounded-lg transition-all ${
-            i === currentPage
-              ? "bg-accent text-accent-foreground shadow-md"
-              : "border-border text-muted-foreground hover:bg-secondary bg-transparent"
+          variant={i === pagination.currentPage ? "default" : "outline"}
+          className={`w-8 h-8 md:w-10 md:h-10 p-0 text-sm ${
+            i === pagination.currentPage
+              ? "bg-slate-600 text-slate-200"
+              : "border-slate-600 text-slate-300 hover:bg-slate-700 bg-transparent"
           }`}
         >
           {i}
@@ -186,45 +196,16 @@ export default function TheLastStory() {
       );
     }
 
-    // Show ellipsis and last page if there are more pages
-    if (totalPages > 6) {
-      // Check if we need ellipsis (gap between page 5 and last page)
-      if (currentPage > 6) {
-        pages.push(
-          <div key="ellipsis-start" className="flex items-center px-2">
-            <span className="text-muted-foreground">…</span>
-          </div>
-        );
-      }
-
-      // Show last page
-      pages.push(
-        <Button
-          key={totalPages}
-          onClick={() => handlePageChange(totalPages)}
-          variant={totalPages === currentPage ? "default" : "outline"}
-          className={`w-9 h-9 md:w-11 md:h-11 p-0 text-sm font-medium rounded-lg transition-all ${
-            totalPages === currentPage
-              ? "bg-accent text-accent-foreground shadow-md"
-              : "border-border text-muted-foreground hover:bg-secondary bg-transparent"
-          }`}
-        >
-          {totalPages}
-        </Button>
-      );
-    }
-
     return (
-      <div className="flex items-center justify-center gap-2 md:gap-3 mt-14 md:mt-16 flex-wrap px-4">
+      <div className="flex items-center justify-center gap-1 md:gap-2 mt-12">
         <Button
-          onClick={() => handlePageChange(currentPage - 1)}
+          onClick={() => handlePageChange(pagination.currentPage - 1)}
           disabled={!pagination.hasPrev}
           variant="outline"
-          className="w-9 h-9 md:w-11 md:h-11 p-0 border-border text-muted-foreground hover:bg-secondary bg-transparent disabled:opacity-40 disabled:cursor-not-allowed rounded-lg transition-all"
-          title="Previous page"
+          className="w-8 h-8 md:w-10 md:h-10 p-0 border-slate-600 text-slate-300 hover:bg-slate-700 bg-transparent disabled:opacity-50"
         >
           <svg
-            className="w-4 h-4 md:w-5 md:h-5"
+            className="w-3 h-3 md:w-4 md:h-4"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -239,14 +220,13 @@ export default function TheLastStory() {
         </Button>
         {pages}
         <Button
-          onClick={() => handlePageChange(currentPage + 1)}
+          onClick={() => handlePageChange(pagination.currentPage + 1)}
           disabled={!pagination.hasNext}
           variant="outline"
-          className="w-9 h-9 md:w-11 md:h-11 p-0 border-border text-muted-foreground hover:bg-secondary bg-transparent disabled:opacity-40 disabled:cursor-not-allowed rounded-lg transition-all"
-          title="Next page"
+          className="w-8 h-8 md:w-10 md:h-10 p-0 border-slate-600 text-slate-300 hover:bg-slate-700 bg-transparent disabled:opacity-50"
         >
           <svg
-            className="w-4 h-4 md:w-5 md:h-5"
+            className="w-3 h-3 md:w-4 md:h-4"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
