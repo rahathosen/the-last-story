@@ -11,15 +11,18 @@ const playfair = Playfair_Display({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://laststory.vercel.app'),
   title: "The Last Story",
   description: "Every soul will taste death",
+  openGraph: {
+    images: '/og-image.png',
+  },
   icons: {
     icon: "/favicon.ico",
     apple: "/apple-icon.png",
     shortcut: "/icon.png",
   },
 };
-
 export default function RootLayout({
   children,
 }: Readonly<{
