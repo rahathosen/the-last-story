@@ -32,24 +32,24 @@
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
+    --background: 217 33% 9%;
     --foreground: 210 40% 98%;
-    --card: 222.2 84% 4.9%;
+    --card: 217 26% 18%;
     --card-foreground: 210 40% 98%;
-    --popover: 222.2 84% 4.9%;
+    --popover: 217 26% 18%;
     --popover-foreground: 210 40% 98%;
     --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-    --secondary: 217.2 32.6% 17.5%;
+    --primary-foreground: 217 33% 9%;
+    --secondary: 217 26% 25%;
     --secondary-foreground: 210 40% 98%;
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
+    --muted: 217 18% 35%;
+    --muted-foreground: 215 20% 65%;
+    --accent: 193 93% 58%;
+    --accent-foreground: 217 33% 9%;
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 210 40% 98%;
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
+    --border: 217 18% 28%;
+    --input: 217 26% 25%;
     --ring: 212.7 26.8% 83.9%;
     --chart-1: 220 70% 50%;
     --chart-2: 160 60% 45%;
@@ -66,13 +66,23 @@
   body {
     @apply bg-background text-foreground;
     font-family: "Inter", sans-serif;
+    letter-spacing: 0.3px;
   }
   .font-serif {
     font-family: var(--font-serif), "Playfair Display", serif;
+    letter-spacing: 0.5px;
   }
 
   .font-sans {
     font-family: var(--font-sans), "Inter", sans-serif;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    letter-spacing: 0.5px;
+  }
+
+  p {
+    @apply leading-8;
   }
 }
 
