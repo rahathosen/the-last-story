@@ -1,7 +1,5 @@
 "use client";
 import { useState, useEffect } from "react";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { UserAvatar } from "@/components/user-avatar";
 import { LoveButton } from "@/components/ui/love-button";
 import Link from "next/link";
@@ -58,19 +56,17 @@ export default function StoryPage() {
         const data = await response.json();
         setStory(data);
 
-        // Update page metadata
         if (data.title) {
           document.title = `${data.title} - The Last Story`;
         }
 
-        // Update meta description
         const metaDescription = document.querySelector(
-          'meta[name="description"]'
+          'meta[name="description"]',
         );
         if (metaDescription) {
           metaDescription.setAttribute(
             "content",
-            data.content.substring(0, 160) + "..."
+            data.content.substring(0, 160) + "...",
           );
         } else {
           const meta = document.createElement("meta");
@@ -79,21 +75,18 @@ export default function StoryPage() {
           document.head.appendChild(meta);
         }
 
-        // Update Open Graph tags
         updateMetaTag("og:title", data.title || "A Story from The Last Story");
         updateMetaTag("og:description", data.content.substring(0, 160) + "...");
         updateMetaTag("og:url", window.location.href);
         updateMetaTag("og:type", "article");
-
-        // Update Twitter Card tags
         updateMetaTag("twitter:card", "summary_large_image");
         updateMetaTag(
           "twitter:title",
-          data.title || "A Story from The Last Story"
+          data.title || "A Story from The Last Story",
         );
         updateMetaTag(
           "twitter:description",
-          data.content.substring(0, 160) + "..."
+          data.content.substring(0, 160) + "...",
         );
       } else if (response.status === 404) {
         setError("Story not found");
@@ -140,11 +133,9 @@ export default function StoryPage() {
   };
 
   const handleBack = () => {
-    // Check if there's a previous page in history
     if (typeof window !== "undefined" && window.history.length > 1) {
       router.back();
     } else {
-      // Fallback to home page
       router.push("/");
     }
   };
@@ -178,55 +169,68 @@ export default function StoryPage() {
 
     if (navigator.share) {
       try {
-        await navigator.share({
-          title,
-          text,
-          url,
-        });
-      } catch (error) {
-        // Fallback to clipboard
+        await navigator.share({ title, text, url });
+      } catch {
         navigator.clipboard.writeText(url);
         alert("Link copied to clipboard!");
       }
     } else {
-      // Fallback to clipboard
       navigator.clipboard.writeText(url);
       alert("Link copied to clipboard!");
     }
   };
 
+  /* ── Loading ── */
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-800 text-slate-100 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 md:h-12 md:w-12 border-b-2 border-slate-300"></div>
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-800 flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-indigo-400" />
+          <p className="text-slate-500 text-sm">Loading story…</p>
+        </div>
       </div>
     );
   }
 
+  /* ── Error ── */
   if (error || !story) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-800 text-slate-100 flex items-center justify-center p-4">
-        <Card className="bg-slate-800/50 border-slate-700/50 backdrop-blur-sm max-w-md w-full">
-          <CardContent className="p-6 md:p-8 text-center">
-            <h1 className="text-xl md:text-2xl font-serif text-slate-200 mb-4">
-              Story Not Found
-            </h1>
-            <p className="text-slate-400 mb-6 text-sm md:text-base">
-              {error ||
-                "The story you're looking for doesn't exist or hasn't been approved yet."}
-            </p>
-            <Button
-              onClick={handleBack}
-              className="bg-slate-700 hover:bg-slate-600 text-slate-200"
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-800 flex items-center justify-center p-4">
+        <div className="max-w-md w-full bg-slate-800/50 border border-slate-700/40 rounded-2xl p-8 text-center backdrop-blur-sm">
+          <div className="w-12 h-12 rounded-full bg-slate-700/50 flex items-center justify-center mx-auto mb-4">
+            <svg
+              className="w-6 h-6 text-slate-400"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
             >
-              Go Back
-            </Button>
-          </CardContent>
-        </Card>
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
+            </svg>
+          </div>
+          <h1 className="text-xl font-serif text-slate-200 mb-2">
+            Story Not Found
+          </h1>
+          <p className="text-slate-400 text-sm mb-6">
+            {error ||
+              "The story you're looking for doesn't exist or hasn't been approved yet."}
+          </p>
+          <button
+            onClick={handleBack}
+            className="px-6 py-2.5 bg-slate-700 hover:bg-slate-600 text-slate-200 rounded-lg text-sm transition-colors"
+          >
+            Go Back
+          </button>
+        </div>
       </div>
     );
   }
 
+  /* ── Main ── */
   return (
     <>
       <Head>
@@ -262,25 +266,22 @@ export default function StoryPage() {
       </Head>
 
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-800 text-slate-100">
-        {/* Header */}
-        <header className="py-3 px-0 md:px-4 sm:px-0">
-          <nav className="container mx-auto flex justify-between items-center">
+        {/* ── Sticky header ── */}
+        <header className="sticky top-0 z-10 bg-slate-900/80 backdrop-blur-sm border-b border-slate-800/50">
+          <nav className="container mx-auto px-4 py-3 flex items-center justify-between max-w-3xl">
             <Link
               href="/"
-              className="text-lg font-medium font-serif text-slate-200 hover:text-white transition-colors whitespace-nowrap"
+              className="text-base font-serif text-slate-200 hover:text-white transition-colors"
             >
               The Last Story
             </Link>
-
-            <div className="flex items-center gap-1 sm:gap-2 md:gap-4">
-              <Button
+            <div className="flex items-center gap-1">
+              <button
                 onClick={handleBack}
-                variant="outline"
-                size="sm"
-                className="border-slate-600 text-slate-300 hover:bg-slate-700 bg-transparent px-2 sm:px-3"
+                className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-md text-sm text-slate-400 hover:text-slate-200 hover:bg-slate-800/80 transition-all"
               >
                 <svg
-                  className="w-4 h-4 sm:mr-1 md:mr-2"
+                  className="w-4 h-4"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -292,17 +293,14 @@ export default function StoryPage() {
                     d="M15 19l-7-7 7-7"
                   />
                 </svg>
-                <span className="sr-only sm:not-sr-only sm:inline">Back</span>
-              </Button>
-
-              <Button
+                <span className="hidden sm:inline text-xs">Back</span>
+              </button>
+              <button
                 onClick={handleShare}
-                variant="outline"
-                size="sm"
-                className="border-slate-600 text-slate-300 hover:bg-slate-700 bg-transparent px-2 sm:px-3"
+                className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-md text-sm text-slate-400 hover:text-slate-200 hover:bg-slate-800/80 transition-all"
               >
                 <svg
-                  className="w-4 h-4 sm:mr-1 md:mr-2"
+                  className="w-4 h-4"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -314,93 +312,105 @@ export default function StoryPage() {
                     d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z"
                   />
                 </svg>
-                <span className="sr-only sm:not-sr-only sm:inline">Share</span>
-              </Button>
-
+                <span className="hidden sm:inline text-xs">Share</span>
+              </button>
               <Link href="/share">
-                <Button
-                  size="sm"
-                  className="bg-slate-700 hover:bg-slate-600 text-slate-200 px-3 sm:px-4"
-                >
-                  <span className="sr-only sm:not-sr-only sm:inline">
-                    Share Your Story
-                  </span>
+                <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs bg-indigo-600/20 text-indigo-300 hover:bg-indigo-600/30 hover:text-indigo-200 border border-indigo-500/30 transition-all">
+                  <svg
+                    className="w-3.5 h-3.5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
+                    />
+                  </svg>
+                  <span className="hidden sm:inline">Write a Story</span>
                   <span className="sm:hidden">Write</span>
-                </Button>
+                </button>
               </Link>
             </div>
           </nav>
         </header>
 
-        {/* Story Content */}
-        <main className="container mx-auto px-4 py-6 md:py-8 max-w-4xl">
-          <Card className="bg-slate-800/50 border-slate-700/50 backdrop-blur-sm">
-            <CardContent className="p-4 md:p-8 lg:p-12">
+        {/* ── Main content ── */}
+        <main className="container mx-auto px-4 py-8 md:py-12 max-w-3xl">
+          <article className="relative bg-slate-800/40 border border-slate-700/40 rounded-2xl overflow-hidden backdrop-blur-sm">
+            {/* Gradient accent line */}
+            <div className="h-px bg-gradient-to-r from-transparent via-indigo-500/50 to-transparent" />
+
+            <div className="p-5 sm:p-7 md:p-10 lg:p-12">
+              {/* Title */}
               {story.title && (
-                <h1 className="text-xl md:text-3xl lg:text-4xl font-serif text-slate-200 mb-4 md:mb-6 leading-tight">
+                <h1 className="text-2xl sm:text-3xl md:text-4xl font-serif text-slate-100 mb-5 leading-snug">
                   {story.title}
                 </h1>
               )}
 
-              <div className="flex items-center gap-3 md:gap-4 mb-6 md:mb-8 text-slate-400 flex-wrap">
-                <div className="flex items-center gap-2 md:gap-3">
+              {/* Author meta */}
+              <div className="flex items-center justify-between gap-3 mb-8 pb-6 border-b border-slate-700/50 flex-wrap">
+                <div className="flex items-center gap-3 min-w-0">
                   <UserAvatar name={story.name} size="md" />
-                  <span className="text-sm md:text-base">
-                    By {story.name || "Anonymous"}
-                  </span>
-                </div>
-                {story.socialMedia && (
-                  <>
-                    <span className="hidden sm:inline">•</span>
-                    <a
-                      href={story.socialMedia.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-1 hover:text-slate-300 transition-colors text-sm md:text-base"
-                    >
-                      <svg
-                        className="w-4 h-4"
-                        fill="currentColor"
-                        viewBox="0 0 24 24"
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium text-slate-300 leading-tight truncate">
+                      {story.name || "Anonymous"}
+                    </p>
+                    {story.socialMedia && (
+                      <a
+                        href={story.socialMedia.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-1 text-slate-500 hover:text-indigo-400 transition-colors text-xs capitalize mt-0.5"
                       >
-                        <path d={getSocialIcon(story.socialMedia.platform)} />
-                      </svg>
-                      <span className="hidden sm:inline">
-                        {story.socialMedia.platform}
-                      </span>
-                    </a>
-                  </>
-                )}
-                <span className="hidden sm:inline">•</span>
-                <span className="text-sm md:text-base">
+                        <svg
+                          className="w-3 h-3 shrink-0"
+                          fill="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path d={getSocialIcon(story.socialMedia.platform)} />
+                        </svg>
+                        <span className="truncate">
+                          {story.socialMedia.platform}
+                        </span>
+                      </a>
+                    )}
+                  </div>
+                </div>
+                <time className="text-xs text-slate-500 tabular-nums shrink-0">
                   {formatDate(story.createdAt)}
-                </span>
+                </time>
               </div>
 
-              <div className="prose prose-lg prose-invert max-w-none">
-                <p
-                  className="text-slate-300 leading-relaxed md:leading-loose text-sm md:text-base lg:text-lg whitespace-pre-wrap"
-                  style={{
-                    fontFamily: "SolaimanLipi, Kalpurush, Arial, sans-serif",
-                  }}
-                >
-                  {story.content}
-                </p>
-              </div>
+              {/* Story body */}
+              <p
+                className="text-slate-300 text-base md:text-lg leading-[1.9] md:leading-[2.05] whitespace-pre-wrap"
+                style={{
+                  fontFamily: "SolaimanLipi, Kalpurush, Arial, sans-serif",
+                }}
+              >
+                {story.content}
+              </p>
 
-              {/* Navigation between stories */}
+              {/* Adjacent story navigation */}
               {(adjacentStories.previous || adjacentStories.next) && (
-                <div className="mt-8 md:mt-12 pt-6 md:pt-8 border-t border-slate-700/50">
-                  <div className="flex flex-col sm:flex-row justify-between gap-4">
+                <div className="mt-10 pt-7 border-t border-slate-700/50">
+                  <p className="text-xs text-slate-600 uppercase tracking-widest font-medium mb-4">
+                    More Stories
+                  </p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     {adjacentStories.previous ? (
                       <Link
                         href={`/story/${adjacentStories.previous.slug}`}
-                        className="flex-1 group"
+                        className="group"
                       >
-                        <div className="p-4 rounded-lg border border-slate-700/50 hover:border-slate-600/50 hover:bg-slate-800/30 transition-all duration-300">
-                          <div className="flex items-center gap-2 text-slate-400 text-sm mb-2">
+                        <div className="h-full p-4 rounded-xl border border-slate-700/50 hover:border-indigo-500/30 hover:bg-slate-800/50 transition-all duration-200">
+                          <div className="flex items-center gap-1.5 text-slate-500 text-xs mb-2">
                             <svg
-                              className="w-4 h-4"
+                              className="w-3.5 h-3.5"
                               fill="none"
                               stroke="currentColor"
                               viewBox="0 0 24 24"
@@ -412,29 +422,27 @@ export default function StoryPage() {
                                 d="M15 19l-7-7 7-7"
                               />
                             </svg>
-                            Previous Story
+                            Previous
                           </div>
-                          <h3 className="text-slate-200 group-hover:text-white transition-colors text-sm md:text-base font-medium">
+                          <p className="text-sm text-slate-300 group-hover:text-slate-100 transition-colors leading-snug line-clamp-2">
                             {adjacentStories.previous.title ||
-                              `Story by ${adjacentStories.previous.name || "Anonymous"
-                              }`}
-                          </h3>
+                              `Story by ${adjacentStories.previous.name || "Anonymous"}`}
+                          </p>
                         </div>
                       </Link>
                     ) : (
-                      <div className="flex-1"></div>
+                      <div />
                     )}
-
                     {adjacentStories.next ? (
                       <Link
                         href={`/story/${adjacentStories.next.slug}`}
-                        className="flex-1 group"
+                        className="group"
                       >
-                        <div className="p-4 rounded-lg border border-slate-700/50 hover:border-slate-600/50 hover:bg-slate-800/30 transition-all duration-300 text-right">
-                          <div className="flex items-center justify-end gap-2 text-slate-400 text-sm mb-2">
-                            Next Story
+                        <div className="h-full p-4 rounded-xl border border-slate-700/50 hover:border-indigo-500/30 hover:bg-slate-800/50 transition-all duration-200 text-right">
+                          <div className="flex items-center justify-end gap-1.5 text-slate-500 text-xs mb-2">
+                            Next
                             <svg
-                              className="w-4 h-4"
+                              className="w-3.5 h-3.5"
                               fill="none"
                               stroke="currentColor"
                               viewBox="0 0 24 24"
@@ -447,63 +455,87 @@ export default function StoryPage() {
                               />
                             </svg>
                           </div>
-                          <h3 className="text-slate-200 group-hover:text-white transition-colors text-sm md:text-base font-medium">
+                          <p className="text-sm text-slate-300 group-hover:text-slate-100 transition-colors leading-snug line-clamp-2">
                             {adjacentStories.next.title ||
-                              `Story by ${adjacentStories.next.name || "Anonymous"
-                              }`}
-                          </h3>
+                              `Story by ${adjacentStories.next.name || "Anonymous"}`}
+                          </p>
                         </div>
                       </Link>
                     ) : (
-                      <div className="flex-1"></div>
+                      <div />
                     )}
                   </div>
                 </div>
               )}
 
-              <div className="mt-8 md:mt-12 pt-6 md:pt-8 border-t border-slate-700/50">
-                <div className="flex flex-col md:flex-row gap-4 justify-between items-center md:items-center">
-                  <p className="text-slate-400 text-sm italic text-center md:text-left whitespace-nowrap">
+              {/* Bottom action bar */}
+              <div className="mt-8 pt-6 border-t border-slate-700/50">
+                <div className="flex items-center justify-between gap-3 flex-wrap">
+                  <div className="flex items-center gap-1.5">
+                    <LoveButton slug={slug} />
+                    <button
+                      onClick={handleShare}
+                      className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs text-slate-400 hover:text-slate-200 hover:bg-slate-700/60 transition-all"
+                    >
+                      <svg
+                        className="w-3.5 h-3.5"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth="2"
+                          d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z"
+                        />
+                      </svg>
+                      <span className="hidden sm:inline">Share</span>
+                    </button>
+                  </div>
+                  <p className="text-xs text-slate-600 italic hidden md:block">
                     Are you prepared for a beautiful death?
                   </p>
-                  <div className="flex gap-2 justify-center md:justify-end">
-                    <LoveButton slug={slug} />
-                    <Button
-                      onClick={handleShare}
-                      variant="outline"
-                      className="border-slate-600 text-slate-300 hover:bg-slate-700 bg-transparent text-sm"
+                  <button
+                    onClick={handleBack}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs text-slate-400 hover:text-slate-200 border border-slate-700/50 hover:border-slate-600/60 hover:bg-slate-800/60 transition-all"
+                  >
+                    <svg
+                      className="w-3.5 h-3.5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
                     >
-                      Share This Story
-                    </Button>
-                    <Button
-                      onClick={handleBack}
-                      variant="outline"
-                      className="border-slate-600 text-slate-300 hover:bg-slate-700 bg-transparent text-sm"
-                    >
-                      Go Back
-                    </Button>
-                  </div>
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M15 19l-7-7 7-7"
+                      />
+                    </svg>
+                    Go Back
+                  </button>
                 </div>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </article>
         </main>
 
-        {/* Footer */}
-        <footer className="py-8 md:py-12 px-4 border-t border-slate-700/50">
-          <div className="container mx-auto max-w-4xl text-center">
-            <p className="text-slate-300 text-base md:text-lg italic mb-4 md:mb-6 font-light">
+        {/* ── Footer ── */}
+        <footer className="py-10 md:py-14 px-4 border-t border-slate-800/50 mt-4">
+          <div className="container mx-auto max-w-3xl text-center">
+            <p className="text-slate-500 text-sm italic mb-5 font-light">
               "Sometimes the most powerful stories are the ones we only tell
               once."
             </p>
-            <div className="flex justify-center gap-4 md:gap-8 text-xs md:text-sm text-slate-400">
-              <a href="#" className="hover:text-slate-300 transition-colors">
+            <div className="flex justify-center gap-6 text-xs text-slate-600">
+              <a href="#" className="hover:text-slate-400 transition-colors">
                 Privacy
               </a>
-              <a href="#" className="hover:text-slate-300 transition-colors">
+              <a href="#" className="hover:text-slate-400 transition-colors">
                 Terms
               </a>
-              <a href="#" className="hover:text-slate-300 transition-colors">
+              <a href="#" className="hover:text-slate-400 transition-colors">
                 Contact
               </a>
             </div>

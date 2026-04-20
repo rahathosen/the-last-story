@@ -5,6 +5,7 @@ import { useState, useRef, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { UserAvatar } from "@/components/user-avatar";
+import { LoveButton } from "@/components/ui/love-button";
 import Link from "next/link";
 
 interface Story {
@@ -40,6 +41,10 @@ export default function TheLastStory() {
   const [loading, setLoading] = useState(true);
   const [zenModeStoryId, setZenModeStoryId] = useState<string | null>(null);
   const [zenModeStory, setZenModeStory] = useState<Story | null>(null);
+  const [isRandomized, setIsRandomized] = useState(false);
+  const [allStories, setAllStories] = useState<Story[]>([]);
+  const [randomPage, setRandomPage] = useState(1);
+  const STORIES_PER_PAGE = 5;
 
   const homeRef = useRef<HTMLElement>(null);
 
@@ -55,10 +60,21 @@ export default function TheLastStory() {
         pagination,
         zenModeStoryId,
         zenModeStory,
+        isRandomized,
+        allStories,
+        randomPage,
       };
       sessionStorage.setItem("homePageState", JSON.stringify(state));
     }
-  }, [stories, pagination, zenModeStoryId, zenModeStory]);
+  }, [
+    stories,
+    pagination,
+    zenModeStoryId,
+    zenModeStory,
+    isRandomized,
+    allStories,
+    randomPage,
+  ]);
 
   // Restore state on page load
   useEffect(() => {
@@ -72,6 +88,11 @@ export default function TheLastStory() {
             setPagination(state.pagination);
             setZenModeStoryId(state.zenModeStoryId);
             setZenModeStory(state.zenModeStory);
+            if (state.isRandomized) {
+              setIsRandomized(state.isRandomized);
+              setAllStories(state.allStories || []);
+              setRandomPage(state.randomPage || 1);
+            }
             setLoading(false);
             return;
           }
@@ -98,8 +119,40 @@ export default function TheLastStory() {
     }
   };
 
+  const handleRandomize = async () => {
+    if (isRandomized) {
+      setIsRandomized(false);
+      setAllStories([]);
+      setRandomPage(1);
+      return;
+    }
+    setLoading(true);
+    try {
+      const response = await fetch(`/api/stories?page=1&limit=9999`);
+      if (response.ok) {
+        const data = await response.json();
+        const shuffled = [...data.stories];
+        for (let i = shuffled.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+        }
+        setAllStories(shuffled);
+        setRandomPage(1);
+        setIsRandomized(true);
+      }
+    } catch (error) {
+      console.error("Error fetching all stories for randomize:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handlePageChange = (page: number) => {
-    fetchStories(page);
+    if (isRandomized) {
+      setRandomPage(page);
+    } else {
+      fetchStories(page);
+    }
     scrollToSection(homeRef);
   };
 
@@ -163,49 +216,72 @@ export default function TheLastStory() {
     }
   };
 
-  const renderPagination = () => {
-    const pages = [];
-    const maxVisiblePages = 5;
-    let startPage = Math.max(
-      1,
-      pagination.currentPage - Math.floor(maxVisiblePages / 2)
-    );
-    const endPage = Math.min(
-      pagination.totalPages,
-      startPage + maxVisiblePages - 1
-    );
+  const renderPagination = (
+    currentPage: number,
+    totalPages: number,
+    hasPrev: boolean,
+    hasNext: boolean,
+  ) => {
+    // Build smart page list: always show first, last, and ±1 around current
+    const getPageNumbers = (): (number | null)[] => {
+      if (totalPages <= 7) {
+        return Array.from({ length: totalPages }, (_, i) => i + 1);
+      }
+      const items: (number | null)[] = [];
+      const left = Math.max(2, currentPage - 1);
+      const right = Math.min(totalPages - 1, currentPage + 1);
 
-    if (endPage - startPage + 1 < maxVisiblePages) {
-      startPage = Math.max(1, endPage - maxVisiblePages + 1);
-    }
+      items.push(1);
+      if (left > 2) items.push(null); // left ellipsis
+      for (let i = left; i <= right; i++) items.push(i);
+      if (right < totalPages - 1) items.push(null); // right ellipsis
+      items.push(totalPages);
 
-    for (let i = startPage; i <= endPage; i++) {
-      pages.push(
-        <Button
-          key={i}
-          onClick={() => handlePageChange(i)}
-          variant={i === pagination.currentPage ? "default" : "outline"}
-          className={`w-8 h-8 md:w-10 md:h-10 p-0 text-sm ${
-            i === pagination.currentPage
-              ? "bg-slate-600 text-slate-200"
-              : "border-slate-600 text-slate-300 hover:bg-slate-700 bg-transparent"
-          }`}
-        >
-          {i}
-        </Button>
-      );
-    }
+      return items;
+    };
+
+    const pageNumbers = getPageNumbers();
+
+    const btnControl =
+      "flex items-center justify-center w-8 h-8 md:w-9 md:h-9 rounded-lg text-slate-500 hover:text-slate-200 hover:bg-slate-700/60 border border-slate-700/40 transition-all duration-150 select-none disabled:opacity-30 disabled:cursor-not-allowed";
+    const btnNormal =
+      "flex items-center justify-center w-8 h-8 md:w-9 md:h-9 rounded-lg text-xs font-medium text-slate-400 hover:text-slate-200 hover:bg-slate-700/60 border border-slate-700/50 transition-all duration-150 select-none";
+    const btnActive =
+      "flex items-center justify-center w-8 h-8 md:w-9 md:h-9 rounded-lg text-xs font-semibold bg-indigo-600/30 text-indigo-300 border border-indigo-500/40 select-none";
 
     return (
-      <div className="flex items-center justify-center gap-1 md:gap-2 mt-12">
-        <Button
-          onClick={() => handlePageChange(pagination.currentPage - 1)}
-          disabled={!pagination.hasPrev}
-          variant="outline"
-          className="w-8 h-8 md:w-10 md:h-10 p-0 border-slate-600 text-slate-300 hover:bg-slate-700 bg-transparent disabled:opacity-50"
+      <div className="flex items-center justify-center gap-1 mt-12 flex-wrap">
+        {/* First page */}
+        <button
+          onClick={() => handlePageChange(1)}
+          disabled={!hasPrev}
+          title="First page"
+          className={btnControl}
         >
           <svg
-            className="w-3 h-3 md:w-4 md:h-4"
+            className="w-3.5 h-3.5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M11 19l-7-7 7-7m8 14l-7-7 7-7"
+            />
+          </svg>
+        </button>
+
+        {/* Previous */}
+        <button
+          onClick={() => handlePageChange(currentPage - 1)}
+          disabled={!hasPrev}
+          title="Previous page"
+          className={btnControl}
+        >
+          <svg
+            className="w-3.5 h-3.5"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -217,16 +293,37 @@ export default function TheLastStory() {
               d="M15 19l-7-7 7-7"
             />
           </svg>
-        </Button>
-        {pages}
-        <Button
-          onClick={() => handlePageChange(pagination.currentPage + 1)}
-          disabled={!pagination.hasNext}
-          variant="outline"
-          className="w-8 h-8 md:w-10 md:h-10 p-0 border-slate-600 text-slate-300 hover:bg-slate-700 bg-transparent disabled:opacity-50"
+        </button>
+
+        {/* Page numbers with ellipsis */}
+        {pageNumbers.map((page, idx) =>
+          page === null ? (
+            <span
+              key={`ellipsis-${idx}`}
+              className="flex items-center justify-center w-8 h-8 md:w-9 md:h-9 text-slate-600 text-sm select-none"
+            >
+              …
+            </span>
+          ) : (
+            <button
+              key={page}
+              onClick={() => handlePageChange(page)}
+              className={page === currentPage ? btnActive : btnNormal}
+            >
+              {page}
+            </button>
+          ),
+        )}
+
+        {/* Next */}
+        <button
+          onClick={() => handlePageChange(currentPage + 1)}
+          disabled={!hasNext}
+          title="Next page"
+          className={btnControl}
         >
           <svg
-            className="w-3 h-3 md:w-4 md:h-4"
+            className="w-3.5 h-3.5"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -238,140 +335,220 @@ export default function TheLastStory() {
               d="M9 5l7 7-7 7"
             />
           </svg>
-        </Button>
+        </button>
+
+        {/* Last page */}
+        <button
+          onClick={() => handlePageChange(totalPages)}
+          disabled={!hasNext}
+          title="Last page"
+          className={btnControl}
+        >
+          <svg
+            className="w-3.5 h-3.5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M13 5l7 7-7 7M5 5l7 7-7 7"
+            />
+          </svg>
+        </button>
       </div>
     );
   };
 
+  // Derived display values — switches seamlessly between normal and randomized mode
+  const displayedStories = isRandomized
+    ? allStories.slice(
+        (randomPage - 1) * STORIES_PER_PAGE,
+        randomPage * STORIES_PER_PAGE,
+      )
+    : stories;
+  const displayedTotalPages = isRandomized
+    ? Math.ceil(allStories.length / STORIES_PER_PAGE)
+    : pagination.totalPages;
+  const displayedCurrentPage = isRandomized
+    ? randomPage
+    : pagination.currentPage;
+  const displayedHasNext = isRandomized
+    ? randomPage < displayedTotalPages
+    : pagination.hasNext;
+  const displayedHasPrev = isRandomized ? randomPage > 1 : pagination.hasPrev;
+  const displayedTotalCount = isRandomized
+    ? allStories.length
+    : pagination.totalCount;
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-800 text-slate-100">
-      {/* Zen Mode Overlay - Improved for mobile scrolling */}
+      {/* Focus Mode Overlay */}
       {zenModeStoryId && zenModeStory && (
-        <div className="fixed inset-0 bg-slate-900/95 backdrop-blur-sm z-50 overflow-y-auto">
-          <div className="min-h-screen flex items-start justify-center p-2 md:p-4 py-4 md:py-8">
-            <div className="w-full max-w-4xl">
-              <Card className="bg-slate-800/90 border-slate-600/70 backdrop-blur-sm">
-                <CardContent className="p-4 md:p-8 lg:p-12 relative">
-                  <button
-                    onClick={() => handleZenMode(zenModeStory)}
-                    className="sticky top-0 float-right mb-4 p-2 rounded-full bg-slate-700 text-slate-300 hover:bg-slate-600 hover:text-slate-200 transition-all duration-300 z-10"
-                    title="Exit Zen Mode"
+        <div className="fixed inset-0 z-50 bg-slate-950/98 backdrop-blur-md overflow-y-auto">
+          {/* Sticky top bar */}
+          <div className="sticky top-0 z-10 bg-slate-950/90 backdrop-blur-sm border-b border-slate-800/60">
+            <div className="max-w-2xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between">
+              <div className="flex items-center gap-2 text-slate-500 text-xs font-medium tracking-widest uppercase select-none">
+                <svg
+                  className="w-3.5 h-3.5"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                >
+                  <circle cx="12" cy="12" r="10" />
+                  <circle cx="12" cy="12" r="3" />
+                </svg>
+                Focus Mode
+              </div>
+              <div className="flex items-center gap-1">
+                <button
+                  onClick={() => handleShare(zenModeStory)}
+                  className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-md text-xs text-slate-400 hover:text-slate-200 hover:bg-slate-800/80 transition-all duration-200"
+                  title="Share this story"
+                >
+                  <svg
+                    className="w-3.5 h-3.5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
                   >
-                    <svg
-                      width="20"
-                      height="20"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
                       strokeWidth="2"
-                    >
-                      <line x1="18" y1="6" x2="6" y2="18"></line>
-                      <line x1="6" y1="6" x2="18" y2="18"></line>
-                    </svg>
-                  </button>
+                      d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z"
+                    />
+                  </svg>
+                  <span className="hidden sm:inline">Share</span>
+                </button>
+                <button
+                  onClick={() => handleZenMode(zenModeStory)}
+                  className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-md text-xs text-slate-400 hover:text-slate-200 hover:bg-slate-800/80 transition-all duration-200"
+                  title="Exit Focus Mode"
+                >
+                  <svg
+                    className="w-3.5 h-3.5"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                  >
+                    <line x1="18" y1="6" x2="6" y2="18" />
+                    <line x1="6" y1="6" x2="18" y2="18" />
+                  </svg>
+                  <span className="hidden sm:inline">Exit</span>
+                </button>
+              </div>
+            </div>
+          </div>
 
-                  <div className="clear-both">
-                    {zenModeStory.title && (
-                      <h2 className="text-xl md:text-2xl lg:text-3xl font-serif text-slate-200 mb-4 md:mb-6 leading-tight">
-                        {zenModeStory.title}
-                      </h2>
-                    )}
+          {/* Scrollable content */}
+          <div className="max-w-2xl mx-auto px-4 sm:px-6 py-8 md:py-12">
+            {/* Title */}
+            {zenModeStory.title && (
+              <h2 className="text-2xl sm:text-3xl md:text-4xl font-serif text-slate-100 mb-6 leading-snug">
+                {zenModeStory.title}
+              </h2>
+            )}
 
-                    <div className="flex items-center gap-3 md:gap-4 mb-6 md:mb-8 text-slate-400 flex-wrap">
-                      <div className="flex items-center gap-2 md:gap-3">
-                        <UserAvatar name={zenModeStory.name} size="md" />
-                        <span className="text-sm md:text-base">
-                          By {zenModeStory.name || "Anonymous"}
-                        </span>
-                      </div>
-                      {zenModeStory.socialMedia && (
-                        <>
-                          <span className="hidden sm:inline">•</span>
-                          <a
-                            href={zenModeStory.socialMedia.url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="flex items-center gap-1 hover:text-slate-300 transition-colors text-sm md:text-base"
-                          >
-                            <svg
-                              className="w-4 h-4"
-                              fill="currentColor"
-                              viewBox="0 0 24 24"
-                            >
-                              <path
-                                d={getSocialIcon(
-                                  zenModeStory.socialMedia.platform
-                                )}
-                              />
-                            </svg>
-                            <span className="hidden sm:inline">
-                              {zenModeStory.socialMedia.platform}
-                            </span>
-                          </a>
-                        </>
-                      )}
-                      <span className="hidden sm:inline">•</span>
-                      <span className="text-sm md:text-base">
-                        {formatDate(zenModeStory.createdAt)}
-                      </span>
-                    </div>
-
-                    <div className="prose prose-lg prose-invert max-w-none">
-                      <p
-                        className="text-slate-300 leading-relaxed md:leading-loose text-base md:text-lg lg:text-xl whitespace-pre-wrap"
-                        style={{
-                          fontFamily:
-                            "SolaimanLipi, Kalpurush, Arial, sans-serif",
-                        }}
-                      >
-                        {zenModeStory.content}
-                      </p>
-                    </div>
-
-                    <div className="mt-6 md:mt-8 pt-4 md:pt-6 border-t border-slate-700/50 flex justify-center">
-                      <Button
-                        onClick={() => handleShare(zenModeStory)}
-                        variant="outline"
-                        className="border-slate-600 text-slate-300 hover:bg-slate-700 bg-transparent text-sm md:text-base"
+            {/* Author meta */}
+            <div className="flex items-center gap-3 mb-8 pb-6 border-b border-slate-800/60 flex-wrap">
+              <UserAvatar name={zenModeStory.name} size="md" />
+              <div className="min-w-0">
+                <p className="text-sm font-medium text-slate-300 leading-tight">
+                  {zenModeStory.name || "Anonymous"}
+                </p>
+                <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+                  {zenModeStory.socialMedia && (
+                    <>
+                      <a
+                        href={zenModeStory.socialMedia.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-1 text-slate-500 hover:text-indigo-400 transition-colors text-xs capitalize"
                       >
                         <svg
-                          className="w-4 h-4 mr-2"
-                          fill="none"
-                          stroke="currentColor"
+                          className="w-3 h-3"
+                          fill="currentColor"
                           viewBox="0 0 24 24"
                         >
                           <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z"
+                            d={getSocialIcon(zenModeStory.socialMedia.platform)}
                           />
                         </svg>
-                        Share This Story
-                      </Button>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+                        {zenModeStory.socialMedia.platform}
+                      </a>
+                      <span className="text-slate-700 text-xs">•</span>
+                    </>
+                  )}
+                  <time className="text-xs text-slate-500 tabular-nums">
+                    {formatDate(zenModeStory.createdAt)}
+                  </time>
+                </div>
+              </div>
+            </div>
+
+            {/* Story body */}
+            <p
+              className="text-slate-300 text-base sm:text-lg leading-[1.9] sm:leading-[2.05] whitespace-pre-wrap"
+              style={{
+                fontFamily: "SolaimanLipi, Kalpurush, Arial, sans-serif",
+              }}
+            >
+              {zenModeStory.content}
+            </p>
+
+            {/* Bottom actions */}
+            <div className="mt-10 pt-6 border-t border-slate-800/60 flex items-center justify-between gap-3 flex-wrap">
+              <LoveButton slug={zenModeStory.slug} />
+              <div className="flex items-center gap-2 flex-wrap">
+                <Link href={`/story/${zenModeStory.slug}`}>
+                  <button className="flex items-center gap-1.5 px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm text-indigo-400 hover:text-indigo-300 border border-indigo-500/30 hover:border-indigo-400/50 hover:bg-indigo-500/5 transition-all duration-200">
+                    View Full Page
+                    <svg
+                      className="w-3 h-3 sm:w-3.5 sm:h-3.5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                      />
+                    </svg>
+                  </button>
+                </Link>
+                <button
+                  onClick={() => handleZenMode(zenModeStory)}
+                  className="flex items-center gap-1.5 px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm text-slate-400 hover:text-slate-200 border border-slate-700/50 hover:border-slate-600/60 hover:bg-slate-800/60 transition-all duration-200"
+                >
+                  Exit Focus
+                </button>
+              </div>
             </div>
           </div>
         </div>
       )}
 
       {/* Header */}
-      <header className="py-3 md:py-4">
-        <nav className="container mx-auto flex justify-between items-center">
-          <h1 className="text-lg md:text-xl font-serif text-slate-200">
+      <header className="sticky top-0 z-10 bg-slate-900/80 backdrop-blur-sm border-b border-slate-800/50">
+        <nav className="container mx-auto px-4 py-3 flex items-center justify-between max-w-5xl">
+          <h1 className="text-base md:text-lg font-serif text-slate-200 select-none">
             The Last Story
           </h1>
-          <div className="flex gap-4 md:gap-4 lg:gap-8">
+          <div className="flex items-center gap-1">
             <button
               onClick={() => scrollToSection(homeRef)}
-              className="text-slate-300 hover:text-white transition-colors duration-300 relative group flex items-center gap-1 md:gap-2"
+              className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-md text-xs text-slate-400 hover:text-slate-200 hover:bg-slate-800/80 transition-all"
             >
-              <span className="hidden md:inline">Home</span>
               <svg
-                className="w-4 h-4 md:hidden inline"
+                className="w-4 h-4"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -383,15 +560,87 @@ export default function TheLastStory() {
                   d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
                 />
               </svg>
-              <span className="absolute bottom-0 left-0 w-0 h-px bg-slate-300 group-hover:w-full transition-all duration-300"></span>
+              <span className="hidden sm:inline">Home</span>
             </button>
-            <Link
-              href="/share"
-              className="text-slate-300 hover:text-white transition-colors duration-300 relative group flex items-center gap-1 md:gap-2"
+            <Link href="/share">
+              <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs bg-indigo-600/20 text-indigo-300 hover:bg-indigo-600/30 hover:text-indigo-200 border border-indigo-500/30 transition-all">
+                <svg
+                  className="w-3.5 h-3.5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
+                  />
+                </svg>
+                <span className="hidden sm:inline">Write Your Story</span>
+                <span className="sm:hidden">Write</span>
+              </button>
+            </Link>
+          </div>
+        </nav>
+      </header>
+
+      {/* Hero Section */}
+      <section className="pt-16 sm:pt-20 md:pt-24 pb-14 sm:pb-18 md:pb-20 px-4">
+        <div className="container mx-auto text-center max-w-2xl">
+          {/* Badge */}
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-xs mb-7 select-none">
+            <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-pulse" />
+            Honoring those who have passed
+          </div>
+
+          {/* Title */}
+          <h2 className="text-4xl sm:text-5xl md:text-6xl font-serif text-slate-100 mb-5 leading-tight">
+            The Last Story
+          </h2>
+
+          {/* Quote */}
+          <div className="mb-7">
+            <p className="text-lg md:text-xl text-slate-300 font-light italic leading-relaxed mb-1.5">
+              &ldquo;Every soul will taste death&rdquo;
+            </p>
+            <p className="text-xs text-slate-500">— Surah Al-Anbya, 35</p>
+          </div>
+
+          {/* Tagline */}
+          <p className="text-slate-400 text-sm sm:text-base leading-relaxed mb-9 max-w-lg mx-auto">
+            A quiet space to share the last words, final memories, and stories
+            of love from those who have passed. Every story is a light kept
+            burning.
+          </p>
+
+          {/* CTA buttons */}
+          <div className="flex items-center justify-center gap-3 flex-wrap">
+            <Link href="/share">
+              <button className="flex items-center gap-2 px-6 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-sm font-medium transition-all duration-200 shadow-lg shadow-indigo-900/40 hover:shadow-indigo-800/50">
+                <svg
+                  className="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
+                  />
+                </svg>
+                Write Your Story
+              </button>
+            </Link>
+            <button
+              onClick={() => scrollToSection(homeRef)}
+              className="flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm text-slate-300 hover:text-slate-100 border border-slate-700/60 hover:border-slate-600/70 hover:bg-slate-800/60 transition-all duration-200"
             >
-              <span className="hidden md:inline">Write Your Story</span>
+              Browse Stories
               <svg
-                className="w-4 h-4 md:w-5 md:h-5 md:hidden inline"
+                className="w-4 h-4"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -400,41 +649,55 @@ export default function TheLastStory() {
                   strokeLinecap="round"
                   strokeLinejoin="round"
                   strokeWidth={2}
-                  d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
+                  d="M19 9l-7 7-7-7"
                 />
               </svg>
-              <span className="absolute bottom-0 left-0 w-0 h-px bg-slate-300 group-hover:w-full transition-all duration-300"></span>
-            </Link>
+            </button>
           </div>
-        </nav>
-      </header>
 
-      {/* Hero Section */}
-      <section className="pt-6 md:pt-8 pb-12 md:pb-16 px-4">
-        <div className="container mx-auto text-center max-w-4xl">
-          <div className="mb-6 md:mb-8">
-            <h2 className="text-3xl md:text-4xl lg:text-6xl font-serif text-slate-200 mb-4 md:mb-6 leading-tight">
-              The Last Story
-            </h2>
-            <div className="text-center mb-4">
-              <p className="text-lg md:text-xl lg:text-2xl text-slate-300 font-light italic leading-relaxed mb-2">
-                "Every soul will taste death"
-              </p>
-              <p className="text-xs md:text-sm text-slate-400">
-                Surah Al-Anbya - 35
-              </p>
-            </div>
-          </div>
-          <div className="w-16 md:w-24 h-px bg-gradient-to-r from-transparent via-slate-400 to-transparent mx-auto"></div>
+          {/* Divider */}
+          <div className="w-16 h-px bg-gradient-to-r from-transparent via-indigo-500/30 to-transparent mx-auto mt-12" />
         </div>
       </section>
 
       {/* Stories Section */}
       <section ref={homeRef} className="py-12 md:py-16">
         <div className="container mx-auto max-w-4xl">
-          <h3 className="text-2xl md:text-3xl font-serif text-slate-200 mb-8 md:mb-12 text-center">
-            Stories of Love and Memory
-          </h3>
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-8 md:mb-12">
+            <div className="text-center sm:text-left">
+              <h3 className="text-2xl md:text-3xl font-serif text-slate-100 mb-1">
+                Stories of Love and Memory
+              </h3>
+              <p className="text-slate-500 text-sm">
+                Real words. Real people. Real moments.
+              </p>
+            </div>
+            <button
+              onClick={handleRandomize}
+              disabled={loading}
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-medium border transition-all duration-200 shrink-0 disabled:opacity-50 disabled:cursor-not-allowed ${
+                isRandomized
+                  ? "bg-indigo-600/20 text-indigo-300 border-indigo-500/40 hover:bg-indigo-600/30"
+                  : "bg-slate-800/60 text-slate-400 border-slate-700/50 hover:text-slate-200 hover:bg-slate-700/60"
+              }`}
+            >
+              <svg
+                className="w-3.5 h-3.5"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <polyline points="16 3 21 3 21 8" />
+                <line x1="4" y1="20" x2="21" y2="3" />
+                <polyline points="21 16 21 21 16 21" />
+                <line x1="15" y1="15" x2="21" y2="21" />
+              </svg>
+              {isRandomized ? "Reset Order" : "Randomize"}
+            </button>
+          </div>
 
           {loading ? (
             <div className="text-center py-12">
@@ -443,7 +706,7 @@ export default function TheLastStory() {
                 Loading stories...
               </p>
             </div>
-          ) : stories.length === 0 ? (
+          ) : displayedStories.length === 0 ? (
             <div className="text-center py-12">
               <p className="text-slate-400 text-base md:text-lg mb-4">
                 No stories have been shared yet.
@@ -457,132 +720,184 @@ export default function TheLastStory() {
             </div>
           ) : (
             <>
-              <div className="space-y-4 md:space-y-6">
-                {stories.map((story) => (
+              <div className="space-y-5 md:space-y-6">
+                {displayedStories.map((story) => (
                   <Card
                     key={story.id}
-                    className="bg-slate-800/50 border-slate-700/50 backdrop-blur-sm hover:bg-slate-800/70 transition-all duration-300"
+                    className="group relative bg-slate-800/40 border border-slate-700/40 backdrop-blur-sm hover:bg-slate-800/65 hover:border-slate-600/60 transition-all duration-300 hover:shadow-xl hover:shadow-slate-950/50 overflow-hidden"
                   >
-                    <CardContent className="p-4 md:p-6 relative">
-                      {/* Action Buttons */}
-                      <div className="absolute top-3 md:top-4 right-3 md:right-4 flex gap-1 md:gap-2">
-                        <button
-                          onClick={() => handleShare(story)}
-                          className="p-1.5 md:p-2 rounded-full bg-slate-700/50 text-slate-400 hover:bg-slate-600/50 hover:text-slate-300 transition-all duration-300"
-                          title="Share this story"
-                        >
-                          <svg
-                            width="14"
-                            height="14"
-                            className="md:w-4 md:h-4"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth="2"
-                              d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z"
-                            />
-                          </svg>
-                        </button>
-                        <button
-                          onClick={() => handleZenMode(story)}
-                          className="p-1.5 md:p-2 rounded-full bg-slate-700/50 text-slate-400 hover:bg-slate-600/50 hover:text-slate-300 transition-all duration-300"
-                          title="Enter Zen Mode"
-                        >
-                          <svg
-                            width="14"
-                            height="14"
-                            className="md:w-4 md:h-4"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                          >
-                            <circle cx="12" cy="12" r="10"></circle>
-                            <circle cx="12" cy="12" r="3"></circle>
-                          </svg>
-                        </button>
+                    {/* Top gradient accent line */}
+                    <div className="h-px bg-gradient-to-r from-transparent via-indigo-500/50 to-transparent" />
+
+                    <CardContent className="p-5 md:p-6">
+                      {/* Meta row: author info + date */}
+                      <div className="flex items-start justify-between gap-3 mb-4">
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <UserAvatar name={story.name} size="sm" />
+                          <div className="min-w-0">
+                            <p className="text-sm font-medium text-slate-300 leading-tight truncate">
+                              {story.name || "Anonymous"}
+                            </p>
+                            {story.socialMedia && (
+                              <a
+                                href={story.socialMedia.url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="flex items-center gap-1 text-slate-500 hover:text-indigo-400 transition-colors text-xs mt-0.5"
+                              >
+                                <svg
+                                  className="w-3 h-3 shrink-0"
+                                  fill="currentColor"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path
+                                    d={getSocialIcon(
+                                      story.socialMedia.platform,
+                                    )}
+                                  />
+                                </svg>
+                                <span className="capitalize truncate">
+                                  {story.socialMedia.platform}
+                                </span>
+                              </a>
+                            )}
+                          </div>
+                        </div>
+                        <time className="text-xs text-slate-500 shrink-0 mt-0.5 tabular-nums">
+                          {formatDate(story.createdAt)}
+                        </time>
                       </div>
 
+                      {/* Story title */}
                       {story.title && (
                         <Link href={`/story/${story.slug}`}>
-                          <h4 className="text-base md:text-lg lg:text-xl font-serif text-slate-200 mb-3 hover:text-white transition-colors cursor-pointer pr-16 md:pr-20">
+                          <h4 className="text-lg md:text-xl font-serif text-slate-100 mb-3 hover:text-indigo-300 transition-colors duration-200 cursor-pointer leading-snug">
                             {story.title}
                           </h4>
                         </Link>
                       )}
 
-                      <div className="flex items-center gap-2 md:gap-3 mb-3 md:mb-4 text-xs md:text-sm text-slate-400 flex-wrap">
-                        <div className="flex items-center gap-1.5 md:gap-2">
-                          <UserAvatar name={story.name} size="sm" />
-                          <span>By {story.name || "Anonymous"}</span>
-                        </div>
-                        {story.socialMedia && (
-                          <>
-                            <span className="hidden sm:inline">•</span>
-                            <a
-                              href={story.socialMedia.url}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="flex items-center gap-1 hover:text-slate-300 transition-colors"
-                            >
-                              <svg
-                                className="w-3 h-3"
-                                fill="currentColor"
-                                viewBox="0 0 24 24"
-                              >
-                                <path
-                                  d={getSocialIcon(story.socialMedia.platform)}
-                                />
-                              </svg>
-                              <span className="hidden sm:inline">
-                                {story.socialMedia.platform}
-                              </span>
-                            </a>
-                          </>
-                        )}
-                        <span className="hidden sm:inline">•</span>
-                        <span>{formatDate(story.createdAt)}</span>
-                      </div>
-
+                      {/* Content preview */}
                       <Link href={`/story/${story.slug}`}>
                         <p
-                          className="text-slate-300 leading-relaxed text-sm md:text-base cursor-pointer hover:text-slate-200 transition-colors line-clamp-4"
+                          className="text-slate-400 leading-relaxed text-sm md:text-base cursor-pointer hover:text-slate-300 transition-colors line-clamp-3 mb-5"
                           style={{
                             fontFamily:
                               "SolaimanLipi, Kalpurush, Arial, sans-serif",
                           }}
                         >
-                          {story.content.length > 200
-                            ? `${story.content.substring(0, 200)}...`
-                            : story.content}
+                          {story.content}
                         </p>
                       </Link>
 
-                      {story.content.length > 200 && (
-                        <Link href={`/story/${story.slug}`}>
-                          <Button
-                            variant="link"
-                            className="p-0 h-auto text-slate-400 hover:text-slate-300 mt-2 text-xs md:text-sm"
+                      {/* Divider */}
+                      <div className="h-px bg-slate-700/50 mb-4" />
+
+                      {/* Action bar */}
+                      <div className="flex items-center justify-between gap-2 flex-wrap">
+                        {/* Left: interactions */}
+                        <div className="flex items-center gap-1">
+                          <LoveButton slug={story.slug} />
+
+                          <button
+                            onClick={() => handleShare(story)}
+                            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs text-slate-400 hover:text-slate-200 hover:bg-slate-700/60 transition-all duration-200"
+                            title="Share this story"
                           >
-                            Read full story →
-                          </Button>
+                            <svg
+                              className="w-3.5 h-3.5"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth="2"
+                                d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z"
+                              />
+                            </svg>
+                            <span className="hidden sm:inline">Share</span>
+                          </button>
+
+                          <button
+                            onClick={() => handleZenMode(story)}
+                            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs text-slate-400 hover:text-slate-200 hover:bg-slate-700/60 transition-all duration-200"
+                            title="Read in Focus Mode"
+                          >
+                            <svg
+                              className="w-3.5 h-3.5"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                            >
+                              <circle cx="12" cy="12" r="10" />
+                              <circle cx="12" cy="12" r="3" />
+                            </svg>
+                            <span className="hidden sm:inline">Focus</span>
+                          </button>
+                        </div>
+
+                        {/* Right: read story */}
+                        <Link href={`/story/${story.slug}`}>
+                          <button className="flex items-center gap-1 text-xs text-indigo-400 hover:text-indigo-300 font-medium transition-colors">
+                            Read story
+                            <svg
+                              className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth="2"
+                                d="M9 5l7 7-7 7"
+                              />
+                            </svg>
+                          </button>
                         </Link>
-                      )}
+                      </div>
                     </CardContent>
                   </Card>
                 ))}
               </div>
 
               {/* Pagination */}
-              {pagination.totalPages > 1 && renderPagination()}
+              {displayedTotalPages > 1 &&
+                renderPagination(
+                  displayedCurrentPage,
+                  displayedTotalPages,
+                  displayedHasPrev,
+                  displayedHasNext,
+                )}
 
               {/* Results Info */}
-              <div className="text-center mt-6 md:mt-8 text-slate-400 text-xs md:text-sm">
-                Showing {stories.length} of {pagination.totalCount} stories
+              <div className="flex items-center justify-center gap-2.5 mt-6 md:mt-8 flex-wrap">
+                <span className="text-slate-500 text-xs md:text-sm">
+                  Showing {displayedStories.length} of {displayedTotalCount}{" "}
+                  stories
+                </span>
+                {isRandomized && (
+                  <span className="flex items-center gap-1 text-xs text-indigo-400/70">
+                    <svg
+                      className="w-3 h-3"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <polyline points="16 3 21 3 21 8" />
+                      <line x1="4" y1="20" x2="21" y2="3" />
+                      <polyline points="21 16 21 21 16 21" />
+                      <line x1="15" y1="15" x2="21" y2="21" />
+                    </svg>
+                    Random order
+                  </span>
+                )}
               </div>
             </>
           )}
@@ -590,22 +905,88 @@ export default function TheLastStory() {
       </section>
 
       {/* Footer */}
-      <footer className="py-8 md:py-12 px-4 border-t border-slate-700/50">
-        <div className="container mx-auto max-w-4xl text-center">
-          <p className="text-slate-300 text-base md:text-lg italic mb-4 md:mb-6 font-light">
-            "Sometimes the most powerful stories are the ones we only tell
-            once."
-          </p>
-          <div className="flex justify-center gap-4 md:gap-8 text-xs md:text-sm text-slate-400">
-            <a href="#" className="hover:text-slate-300 transition-colors">
-              Privacy
-            </a>
-            <a href="#" className="hover:text-slate-300 transition-colors">
-              Terms
-            </a>
-            <a href="#" className="hover:text-slate-300 transition-colors">
-              Contact
-            </a>
+      <footer className="py-12 md:py-16 px-4 border-t border-slate-800/50 mt-4">
+        <div className="container mx-auto max-w-5xl">
+          {/* Top grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 sm:gap-6 mb-10">
+            {/* Brand column */}
+            <div className="sm:col-span-1">
+              <h2 className="font-serif text-slate-200 text-base mb-2">
+                The Last Story
+              </h2>
+              <p className="text-slate-500 text-sm leading-relaxed">
+                A space to honor the final words and memories of those we love.
+              </p>
+            </div>
+
+            {/* Navigation column */}
+            <div>
+              <h3 className="text-xs text-slate-600 uppercase tracking-widest font-medium mb-3">
+                Navigate
+              </h3>
+              <ul className="space-y-2">
+                <li>
+                  <button
+                    onClick={() => scrollToSection(homeRef)}
+                    className="text-slate-400 hover:text-slate-200 text-sm transition-colors"
+                  >
+                    Home
+                  </button>
+                </li>
+                <li>
+                  <Link
+                    href="/share"
+                    className="text-slate-400 hover:text-slate-200 text-sm transition-colors"
+                  >
+                    Write a Story
+                  </Link>
+                </li>
+              </ul>
+            </div>
+
+            {/* Legal column */}
+            <div>
+              <h3 className="text-xs text-slate-600 uppercase tracking-widest font-medium mb-3">
+                Legal & Support
+              </h3>
+              <ul className="space-y-2">
+                <li>
+                  <Link
+                    href="/privacy"
+                    className="text-slate-400 hover:text-slate-200 text-sm transition-colors"
+                  >
+                    Privacy Policy
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/terms"
+                    className="text-slate-400 hover:text-slate-200 text-sm transition-colors"
+                  >
+                    Terms of Service
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/contact"
+                    className="text-slate-400 hover:text-slate-200 text-sm transition-colors"
+                  >
+                    Contact
+                  </Link>
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          {/* Bottom bar */}
+          <div className="pt-6 border-t border-slate-800/50 flex flex-col sm:flex-row justify-between items-center gap-3">
+            <p className="text-slate-500 text-xs italic text-center sm:text-left">
+              &ldquo;Sometimes the most powerful stories are the ones we only
+              tell once.&rdquo;
+            </p>
+            <p className="text-slate-700 text-xs shrink-0">
+              © 2024 The Last Story
+            </p>
           </div>
         </div>
       </footer>
