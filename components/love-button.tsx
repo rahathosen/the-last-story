@@ -82,19 +82,16 @@ export function LoveButton({ slug }: LoveButtonProps) {
       onClick={handleLoveClick}
       disabled={loading || !viewerId}
       variant="outline"
-      size="sm"
-      className={`gap-2 transition-colors ${
+      className={`border-slate-600 bg-transparent text-sm transition-all duration-200 ${
         isLoved
-          ? "border-red-500 text-red-500 hover:bg-red-500/10"
-          : "border-slate-600 text-slate-300 hover:bg-slate-700"
+          ? "text-red-500 border-red-500/50 hover:border-red-500 hover:bg-red-500/5"
+          : "text-slate-300 hover:bg-slate-700"
       }`}
     >
       <Heart
         className={`w-4 h-4 ${isLoved ? "fill-current" : ""}`}
       />
-      <span className="text-sm">
-        {loveCount > 0 ? `Love (${loveCount})` : "Love"}
-      </span>
+      {loveCount > 0 && <span>({loveCount})</span>}
     </Button>
   );
 }

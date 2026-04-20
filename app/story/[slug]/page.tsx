@@ -464,11 +464,11 @@ export default function StoryPage() {
               )}
 
               <div className="mt-8 md:mt-12 pt-6 md:pt-8 border-t border-slate-700/50">
-                <div className="flex flex-col sm:flex-row gap-4 justify-between items-center">
-                  <p className="text-slate-400 text-sm italic text-center sm:text-left">
+                <div className="flex flex-col md:flex-row gap-4 justify-between items-center md:items-center">
+                  <p className="text-slate-400 text-sm italic text-center md:text-left whitespace-nowrap">
                     Are you prepared for a beautiful death?
                   </p>
-                  <div className="flex gap-2 flex-wrap justify-center sm:justify-end">
+                  <div className="flex gap-2 justify-center md:justify-end">
                     <LoveButton slug={slug} />
                     <Button
                       onClick={handleShare}
