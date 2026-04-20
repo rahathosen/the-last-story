@@ -18,6 +18,7 @@ export async function GET(request: NextRequest) {
     const sortBy = searchParams.get("sortBy") || "createdAt";
     const sortOrder = searchParams.get("sortOrder") || "desc";
     const status = searchParams.get("status"); // 'approved', 'pending', or null for all
+    const format = searchParams.get("format"); // 'csv' or null for json
 
     let whereClause = {};
     if (status === "approved") {
@@ -32,6 +33,46 @@ export async function GET(request: NextRequest) {
         [sortBy]: sortOrder as "asc" | "desc",
       },
     });
+
+    // CSV export format
+    if (format === "csv") {
+      const csvHeaders = [
+        "ID",
+        "Slug",
+        "Title",
+        "Author Name",
+        "Status",
+        "Social Platform",
+        "Social URL",
+        "Created Date",
+        "Content",
+      ];
+
+      const csvRows = stories.map((story) => [
+        story.id,
+        story.slug,
+        story.title || "",
+        story.name || "Anonymous",
+        story.isApproved ? "Approved" : "Pending",
+        story.socialMedia?.platform || "",
+        story.socialMedia?.url || "",
+        new Date(story.createdAt).toLocaleString(),
+        `"${(story.content || "").replace(/"/g, '""')}"`, // Escape quotes in content
+      ]);
+
+      const csv = [
+        csvHeaders.join(","),
+        ...csvRows.map((row) => row.join(",")),
+      ].join("\n");
+
+      return new NextResponse(csv, {
+        status: 200,
+        headers: {
+          "Content-Type": "text/csv; charset=utf-8",
+          "Content-Disposition": `attachment; filename="stories-${new Date().toISOString().split("T")[0]}.csv"`,
+        },
+      });
+    }
 
     return NextResponse.json(stories);
   } catch (error) {
