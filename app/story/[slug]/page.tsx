@@ -529,15 +529,24 @@ export default function StoryPage() {
               once."
             </p>
             <div className="flex justify-center gap-6 text-xs text-slate-600">
-              <a href="#" className="hover:text-slate-400 transition-colors">
+              <Link
+                href="/privacy"
+                className="hover:text-slate-400 transition-colors"
+              >
                 Privacy
-              </a>
-              <a href="#" className="hover:text-slate-400 transition-colors">
+              </Link>
+              <Link
+                href="/terms"
+                className="hover:text-slate-400 transition-colors"
+              >
                 Terms
-              </a>
-              <a href="#" className="hover:text-slate-400 transition-colors">
+              </Link>
+              <Link
+                href="/contact"
+                className="hover:text-slate-400 transition-colors"
+              >
                 Contact
-              </a>
+              </Link>
             </div>
           </div>
         </footer>

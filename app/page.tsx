@@ -387,9 +387,15 @@ export default function TheLastStory() {
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-800 text-slate-100">
       {/* Focus Mode Overlay */}
       {zenModeStoryId && zenModeStory && (
-        <div className="fixed inset-0 z-50 bg-slate-950/98 backdrop-blur-md overflow-y-auto">
+        <div
+          className="fixed inset-0 z-50 overflow-y-auto"
+          style={{ backgroundColor: "#111827" }}
+        >
           {/* Sticky top bar */}
-          <div className="sticky top-0 z-10 bg-slate-950/90 backdrop-blur-sm border-b border-slate-800/60">
+          <div
+            className="sticky top-0 z-10 backdrop-blur-sm border-b border-slate-700/50"
+            style={{ backgroundColor: "#111827f2" }}
+          >
             <div className="max-w-2xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between">
               <div className="flex items-center gap-2 text-slate-500 text-xs font-medium tracking-widest uppercase select-none">
                 <svg
@@ -447,7 +453,7 @@ export default function TheLastStory() {
           </div>
 
           {/* Scrollable content */}
-          <div className="max-w-2xl mx-auto px-4 sm:px-6 py-8 md:py-12">
+          <div className="max-w-[70ch] mx-auto px-5 sm:px-8 py-10 md:py-16">
             {/* Title */}
             {zenModeStory.title && (
               <h2 className="text-2xl sm:text-3xl md:text-4xl font-serif text-slate-100 mb-6 leading-snug">
@@ -456,7 +462,7 @@ export default function TheLastStory() {
             )}
 
             {/* Author meta */}
-            <div className="flex items-center gap-3 mb-8 pb-6 border-b border-slate-800/60 flex-wrap">
+            <div className="flex items-center gap-3 mb-8 pb-6 border-b border-slate-700/50 flex-wrap">
               <UserAvatar name={zenModeStory.name} size="md" />
               <div className="min-w-0">
                 <p className="text-sm font-medium text-slate-300 leading-tight">
@@ -494,7 +500,7 @@ export default function TheLastStory() {
 
             {/* Story body */}
             <p
-              className="text-slate-300 text-base sm:text-lg leading-[1.9] sm:leading-[2.05] whitespace-pre-wrap"
+              className="text-slate-100 text-[1.05rem] sm:text-[1.125rem] leading-[1.95] sm:leading-[2.1] whitespace-pre-wrap tracking-wide"
               style={{
                 fontFamily: "SolaimanLipi, Kalpurush, Arial, sans-serif",
               }}
@@ -503,7 +509,7 @@ export default function TheLastStory() {
             </p>
 
             {/* Bottom actions */}
-            <div className="mt-10 pt-6 border-t border-slate-800/60 flex items-center justify-between gap-3 flex-wrap">
+            <div className="mt-12 pt-6 border-t border-slate-700/50 flex items-center justify-between gap-3 flex-wrap">
               <LoveButton slug={zenModeStory.slug} />
               <div className="flex items-center gap-2 flex-wrap">
                 <Link href={`/story/${zenModeStory.slug}`}>
